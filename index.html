@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zensur - Interaktives Plakat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }        body {
+            font-family: 'Inter', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px 0 60px 0;
+        }body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            animation: backgroundMove 20s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.2), transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: sparkle 15s linear infinite;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes sparkle {
+            from { transform: translateX(0); }
+            to { transform: translateX(200px); }
+        }
+
+        @keyframes backgroundMove {
+            0%, 100% { 
+                opacity: 1; 
+                transform: translateY(0px) scale(1); 
+            }
+            25% { 
+                opacity: 0.8; 
+                transform: translateY(-10px) scale(1.02); 
+            }
+            50% { 
+                opacity: 0.9; 
+                transform: translateY(-5px) scale(1.01); 
+            }
+            75% { 
+                opacity: 0.7; 
+                transform: translateY(-15px) scale(1.03); 
+            }        }        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+            min-height: calc(100vh - 80px);
+        }.topics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 2fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            height: 600px;
+            animation: fadeInUp 1.2s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }        .topic-card {
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: cardSlideIn 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Individual card colors and layouts */
+        .topic-card:nth-child(1) {
+            background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+            grid-column: 1;
+            grid-row: 1 / 3;
+        }
+
+        .topic-card:nth-child(2) {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            grid-column: 2 / 4;
+            grid-row: 1;
+        }
+
+        .topic-card:nth-child(3) {
+            background: linear-gradient(135deg, #FF5722 0%, #D32F2F 100%);
+            grid-column: 1;
+            grid-row: 3;
+        }
+
+        .topic-card:nth-child(4) {
+            background: linear-gradient(135deg, #E91E63 0%, #AD1457 100%);
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .topic-card:nth-child(5) {
+            background: linear-gradient(135deg, #9C27B0 0%, #6A1B9A 100%);
+            grid-column: 3;
+            grid-row: 2;
+        }        .topic-card:nth-child(6) {
+            background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .topic-card:nth-child(7) {
+            background: linear-gradient(135deg, #795548 0%, #5D4037 100%);
+            grid-column: 3;
+            grid-row: 3;
+        }
+
+        @keyframes cardSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }        .topic-card:nth-child(1) { animation-delay: 0.1s; }
+        .topic-card:nth-child(2) { animation-delay: 0.2s; }
+        .topic-card:nth-child(3) { animation-delay: 0.3s; }
+        .topic-card:nth-child(4) { animation-delay: 0.4s; }
+        .topic-card:nth-child(5) { animation-delay: 0.5s; }
+        .topic-card:nth-child(6) { animation-delay: 0.6s; }
+        .topic-card:nth-child(7) { animation-delay: 0.7s; }.topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .topic-card:hover::before {
+            left: 100%;
+        }        .topic-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+        }
+
+        .topic-card:active {
+            transform: translateY(-10px) scale(1.01);
+            transition: all 0.1s ease;
+        }        .topic-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }        .topic-card:hover .icon {
+            transform: translateY(-5px) scale(1.1);
+            animation-play-state: paused;
+        }        .topic-card:focus {
+            outline: 3px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+        }.topic-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .topic-card h3 .icon-inline {
+            font-size: 1.4rem;
+        }
+
+        .topic-card p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+            font-size: 0.9rem;
+            font-weight: 400;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }        /* Responsive Design */        @media (max-width: 1024px) {
+            .topics-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+                max-width: 700px;
+                height: 550px;
+            }
+            
+            .topic-card:nth-child(1) {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            .topic-card:nth-child(2) {
+                grid-column: 2;
+                grid-row: 1;
+            }
+            .topic-card:nth-child(3) {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            .topic-card:nth-child(4) {
+                grid-column: 2;
+                grid-row: 2;
+            }
+            .topic-card:nth-child(5) {
+                grid-column: 1;
+                grid-row: 3;
+            }
+            .topic-card:nth-child(6) {
+                grid-column: 2;
+                grid-row: 3;
+            }
+            .topic-card:nth-child(7) {
+                grid-column: 1 / 3;
+                grid-row: 4;
+            }
+        }        @media (max-width: 768px) {
+            body {
+                overflow-y: auto;
+                align-items: flex-start;
+                padding: 20px 0;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+              .topics-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(7, 1fr);
+                max-width: 350px;
+                gap: 15px;
+                height: auto;
+            }
+              .topic-card {
+                padding: 25px;
+                grid-column: 1 !important;
+                grid-row: auto !important;
+            }        }
+    </style><div class="container">
+        <div class="topics-grid">            <div class="topic-card" tabindex="0" onclick="openPage('worldmap.html')">
+                <div class="icon">🗺️</div>
+                <h3>Pressefreiheit Weltweit</h3>
+                <p>Interaktive Weltkarte des Pressefreiheitsindex</p>
+            </div>
+
+            <div class="topic-card" tabindex="0" onclick="openPage('definition.html')">
+                <div class="icon">❓</div>
+                <h3>Was ist Zensur?</h3>
+                <p>Definition und rechtliche Grundlagen</p>
+            </div>
+
+            <div class="topic-card" tabindex="0" onclick="openPage('books.html')">
+                <div class="icon">📚</div>
+                <h3>Verbotene Bücher</h3>
+                <p>Berühmte zensierte Werke im Kartenstapel</p>
+            </div>
+
+            <div class="topic-card" tabindex="0" onclick="openPage('history_timeline.html')">
+                <div class="icon">⏰</div>
+                <h3>Geschichte der Zensur</h3>
+                <p>Historische Entwicklung und Zeitlinie</p>
+            </div>
+
+            <div class="topic-card" tabindex="0" onclick="openPage('examples.html')">
+                <div class="icon">📰</div>
+                <h3>Aktuelle Beispiele</h3>
+                <p>Konkrete Fälle von Zensur weltweit</p>
+            </div>            <div class="topic-card" tabindex="0" onclick="openPage('fahrenheit.html')">
+                <div class="icon">🔥</div>
+                <h3>Fahrenheit 451</h3>
+                <p>Zensur in der Fiktion</p>
+            </div>
+
+            <div class="topic-card" tabindex="0" onclick="openPage('conclusion.html')">
+                <h3><span class="icon-inline">💭</span>Fazit</h3>
+                <p>Bedeutung der Pressefreiheit</p>
+            </div>
+        </div>
+    </div>    <script>
+        function openPage(page) {
+            // Add click animation
+            event.target.closest('.topic-card').style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                window.location.href = page;
+            }, 150);
+        }
+
+        // Add mouse movement parallax effect
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.topic-card');
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+            
+            cards.forEach((card, index) => {
+                const intensity = (index + 1) * 0.5;
+                const xOffset = (mouseX - 0.5) * intensity;
+                const yOffset = (mouseY - 0.5) * intensity;
+                
+                card.style.transform += ` translate(${xOffset}px, ${yOffset}px)`;
+            });
+        });
+
+        // Add scroll-triggered animations (for mobile)
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);        // Initialize animations when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.topic-card');
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const cards = document.querySelectorAll('.topic-card');
+            let currentIndex = Array.from(cards).findIndex(card => 
+                card === document.activeElement || card.contains(document.activeElement)
+            );
+            
+            switch(e.key) {
+                case 'ArrowRight':
+                    e.preventDefault();
+                    currentIndex = (currentIndex + 1) % cards.length;
+                    cards[currentIndex].focus();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    currentIndex = currentIndex <= 0 ? cards.length - 1 : currentIndex - 1;
+                    cards[currentIndex].focus();
+                    break;
+                case 'Enter':
+                case ' ':
+                    if (document.activeElement.classList.contains('topic-card')) {
+                        e.preventDefault();
+                        document.activeElement.click();
+                    }                    break;
+            }
+        });
+    </script>
+</body>
+</html>

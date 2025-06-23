@@ -304,7 +304,87 @@
 
         .choice-btn:active {
             transform: translateY(-1px);
-        }        @media (max-width: 900px) {
+        }
+        
+        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted rgba(255, 255, 255, 0.8);
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        @media (max-width: 900px) {
             .scene {
                 padding: 10px;
                 padding-bottom: 80px;
@@ -537,11 +617,106 @@
             font-size: 0.8rem;
             animation: pulse 2s infinite;
             z-index: 5;
-        }
-
-        @keyframes pulse {
+        }        @keyframes pulse {
             0%, 100% { opacity: 0.7; }
             50% { opacity: 1; }
+        }
+
+        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted #e67e22;
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(230, 126, 34, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .word-explanation {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 90vw;
+                width: 90vw;
+            }
+            
+            .word-explanation.show {
+                transform: translateX(-50%);
+            }
+            
+            .word-explanation::after {
+                display: none;
+            }
         }
     </style>
 
@@ -566,8 +741,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>    <script>
+        </div>    </div>    <script>
         // Guy Montags Entscheidungsreise - Interaktive Szenen mit Temperatur-System
         const scenes = [
             {
@@ -719,10 +893,9 @@
                 icon: "🕊️",
                 title: "Hoffnung auf Neubeginn",
                 temperature: 20,
-                content: `
-                    <div class="scene-text">
+                content: `                    <div class="scene-text">
                         Du hast einen anderen Weg gewählt. Das Wissen lebt in dir weiter. 
-                        Du bist Teil der Hoffnung auf eine aufgeklärte Zukunft.
+                        Du bist Teil der Hoffnung auf eine <span class="difficult-word" onclick="showWordExplanation(event, 'aufgeklaerte')">aufgeklärte</span> Zukunft.
                     </div>
                     <div class="scene-quote">
                         "Wir werden uns an alles erinnern, und dann werden wir langsam wieder aufbauen."
@@ -738,9 +911,8 @@
                 icon: "⚫",
                 title: "Das Ende der Gedanken",
                 temperature: 451,
-                content: `
-                    <div class="scene-text">
-                        Du hast dich für die Konformität entschieden. Die Bücher brennen, 
+                content: `                    <div class="scene-text">
+                        Du hast dich für die <span class="difficult-word" onclick="showWordExplanation(event, 'konformitaet')">Konformität</span> entschieden. Die Bücher brennen, 
                         und mit ihnen stirbt das kritische Denken.
                     </div>
                     <div class="scene-quote">
@@ -776,7 +948,7 @@
 
         // Zurück zur Hauptseite
         window.goBackToMain = function() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         };
 
         // Szenen initialisieren
@@ -919,11 +1091,71 @@
 
         function goToScene(index) {
             // Diese Funktion wird nicht mehr verwendet, aber für Kompatibilität beibehalten
-        }
-
-        window.nextScene = function() {
+        }        window.nextScene = function() {
             // Diese Funktion wird nicht mehr verwendet, aber für Kompatibilität beibehalten
         };
+
+        // Wörterbuch für Kinder-Erklärungen
+        const wordExplanations = {
+            'aufgeklaerte': 'Aufgeklärt bedeutet "gebildet und informiert". Menschen, die viel wissen und selbst denken können.',
+            'konformitaet': 'Konformität bedeutet "sich anpassen". Alle machen das Gleiche und niemand denkt selbst nach.'
+        };
+
+        // Aktuelle offene Erklärung
+        let currentExplanation = null;
+
+        // Wort-Erklärung anzeigen
+        function showWordExplanation(event, word) {
+            event.stopPropagation();
+            
+            if (currentExplanation) {
+                currentExplanation.remove();
+            }
+            
+            const explanation = wordExplanations[word];
+            if (!explanation) return;
+            
+            const target = event.target;
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'word-explanation';
+            explanationDiv.innerHTML = `
+                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
+                ${explanation}
+            `;
+            
+            target.appendChild(explanationDiv);
+            currentExplanation = explanationDiv;
+            
+            setTimeout(() => {
+                explanationDiv.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                if (currentExplanation === explanationDiv) {
+                    hideWordExplanation();
+                }
+            }, 5000);
+        }
+
+        // Wort-Erklärung verstecken
+        function hideWordExplanation() {
+            if (currentExplanation) {
+                currentExplanation.classList.remove('show');
+                setTimeout(() => {
+                    if (currentExplanation && currentExplanation.parentNode) {
+                        currentExplanation.remove();
+                    }
+                    currentExplanation = null;
+                }, 300);
+            }
+        }
+
+        // Verstecke Erklärung bei Klick außerhalb
+        document.addEventListener('click', (e) => {
+            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
+                hideWordExplanation();
+            }
+        });
 
         // Initialisiere beim Laden der Seite
         document.addEventListener('DOMContentLoaded', () => {

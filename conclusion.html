@@ -1,11 +1,90 @@
-<!DOCTYPE html>
+be<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fazit - Zensur und Meinungsfreiheit</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://f        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted #27ae60;
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(39, 174, 96, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {…}ts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -374,74 +453,13 @@
                 <div class="modal-body">
                     <!-- Introduction -->
                     <div class="intro-section">
-                        <h2>Was haben wir gelernt?</h2>
-                        <p>
-                            Zensur bedroht die Grundlagen einer freien Gesellschaft. Während in Deutschland und Österreich Pressefreiheit verfassungsrechtlich geschützt ist, leiden Millionen von Menschen weltweit unter Informationskontrolle und Meinungsunterdrückung.
+                        <h2>Was haben wir gelernt?</h2>                        <p>
+                            Zensur bedroht die Grundlagen einer freien Gesellschaft. Während in Deutschland und Österreich <span class="difficult-word" onclick="showWordExplanation(event, 'pressefreiheit')">Pressefreiheit</span> <span class="difficult-word" onclick="showWordExplanation(event, 'verfassungsrechtlich')">verfassungsrechtlich</span> geschützt ist, leiden Millionen von Menschen weltweit unter <span class="difficult-word" onclick="showWordExplanation(event, 'informationskontrolle')">Informationskontrolle</span> und <span class="difficult-word" onclick="showWordExplanation(event, 'meinungsunterdrueckung')">Meinungsunterdrückung</span>.
                         </p>
                     </div>
 
-            <!-- Key Insights Cards -->
-            <div class="cards-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">📚</span>
-                        <h3>Bücher als Bedrohung</h3>
-                    </div>
-                    <p>
-                        Autoritäre Regime fürchten Bücher, weil sie Menschen zum kritischen Denken anregen und alternative Weltanschauungen vermitteln. Ein einziges Buch kann Millionen von Menschen inspirieren und gesellschaftlichen Wandel anstoßen.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">🌐</span>
-                        <h3>Digitale Revolution</h3>
-                    </div>
-                    <p>
-                        Das Internet hat neue Formen der Zensur geschaffen, aber auch neue Möglichkeiten, diese zu umgehen. Algorithmen entscheiden heute darüber, welche Informationen wir sehen - oft ohne dass wir es merken.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">🔄</span>
-                        <h3>Historische Muster</h3>
-                    </div>
-                    <p>
-                        Zensur folgt oft ähnlichen Mustern: Erst werden Ideen verboten, dann Menschen verfolgt, die sie verbreiten. Die Geschichte lehrt uns, wachsam zu bleiben und Frühwarnzeichen zu erkennen.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">⚖️</span>
-                        <h3>Rechtlicher Schutz</h3>
-                    </div>
-                    <p>
-                        Verfassungsrechtliche Garantien sind wichtig, aber nur so stark wie die Gesellschaft, die sie verteidigt. Meinungsfreiheit muss aktiv geschützt und gepflegt werden.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">🎭</span>
-                        <h3>Kulturelle Vielfalt</h3>
-                    </div>
-                    <p>
-                        Zensur verarmt die Kultur und führt zu Einheitsmeinung statt produktivem Meinungsaustausch. Vielfalt der Gedanken ist essentiell für Innovation und gesellschaftlichen Fortschritt.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon">🛡️</span>
-                        <h3>Widerstand wirkt</h3>
-                    </div>
-                    <p>
-                        Zensur macht das Zensierte oft bekannter und stärkt den Widerstand gegen Unterdrückung. Der Streisand-Effekt zeigt: Verbote können das Gegenteil bewirken.
-                    </p>
-                </div>
-            </div>
+          
+                
 
             <!-- Quote Section -->
             <div class="quote-section">
@@ -453,9 +471,8 @@
 
             <!-- Action Section -->
             <div class="action-section">
-                <h3>🚀 Was können wir tun?</h3>
-                <p>
-                    Meinungsfreiheit ist kein Selbstläufer - sie muss aktiv verteidigt und geschützt werden. Jeder Einzelne kann einen Beitrag leisten:
+                <h3>🚀 Was können wir tun?</h3>                <p>
+                    <span class="difficult-word" onclick="showWordExplanation(event, 'meinungsfreiheit')">Meinungsfreiheit</span> ist kein Selbstläufer - sie muss aktiv verteidigt und geschützt werden. Jeder Einzelne kann einen Beitrag leisten:
                 </p>
                 
                 <div class="action-list">
@@ -465,11 +482,11 @@
                     </div>
                     <div class="action-item">
                         <h4>🤔 Kritisch denken</h4>
-                        <p>Informationen hinterfragen, Quellen prüfen und nicht alles unreflektiert glauben</p>
+                        <p>Informationen hinterfragen, Quellen prüfen und nicht alles <span class="difficult-word" onclick="showWordExplanation(event, 'unreflektiert')">unreflektiert</span> glauben</p>
                     </div>
                     <div class="action-item">
                         <h4>📚 Vielfalt lesen</h4>
-                        <p>Verschiedene Meinungen und Perspektiven kennenlernen, auch unbequeme Wahrheiten</p>
+                        <p>Verschiedene Meinungen und <span class="difficult-word" onclick="showWordExplanation(event, 'perspektiven')">Perspektiven</span> kennenlernen, auch unbequeme Wahrheiten</p>
                     </div>
                     <div class="action-item">
                         <h4>🤝 Organisationen unterstützen</h4>
@@ -477,7 +494,7 @@
                     </div>
                     <div class="action-item">
                         <h4>💻 Technologie nutzen</h4>
-                        <p>VPNs und sichere Kommunikation verstehen und Zensur-resistente Tools verwenden</p>
+                        <p><span class="difficult-word" onclick="showWordExplanation(event, 'vpns')">VPNs</span> und sichere Kommunikation verstehen und Zensur-resistente Tools verwenden</p>
                     </div>
                     <div class="action-item">
                         <h4>🗳️ Politisch engagieren</h4>
@@ -487,7 +504,21 @@
             </div>
 
             <!-- Sources Section -->
-            <div class="sources-section">
+
+
+            <!-- Final Message -->
+            <div class="final-message">
+                <h3>💡 Schlusswort</h3>
+                <p>
+                    <strong>"Ich bin nicht einverstanden mit dem, was Sie sagen, aber ich werde bis zum Tod Ihr Recht verteidigen, es zu sagen."</strong>
+                    <br><br>
+                    Die Freiheit des Denkens und der Meinungsäußerung ist die Grundlage aller anderen Freiheiten. 
+                    Sie zu schützen bedeutet, die Vielfalt menschlichen Denkens und die Demokratie selbst zu bewahren.
+                    <br><br>
+                    <em>— Voltaire (zugeschrieben)</em>
+                </p>
+            </div>
+                        <div class="sources-section">
                 <h3>📚 Wichtige Quellen und Organisationen</h3>
                 <ul>
                     <li><strong>Deutschland:</strong> Bundesprüfstelle für jugendgefährdende Medien (BPjM), Institut für Zeitgeschichte München</li>
@@ -502,24 +533,82 @@
                     <li><strong>Naher Osten:</strong> Human Rights Watch, verschiedene regionale Organisationen</li>
                 </ul>
             </div>
-
-            <!-- Final Message -->
-            <div class="final-message">
-                <h3>💡 Schlusswort</h3>
-                <p>
-                    <strong>"Ich bin nicht einverstanden mit dem, was Sie sagen, aber ich werde bis zum Tod Ihr Recht verteidigen, es zu sagen."</strong>
-                    <br><br>
-                    Die Freiheit des Denkens und der Meinungsäußerung ist die Grundlage aller anderen Freiheiten. 
-                    Sie zu schützen bedeutet, die Vielfalt menschlichen Denkens und die Demokratie selbst zu bewahren.
-                    <br><br>
-                    <em>— Voltaire (zugeschrieben)</em>
-                </p>
-            </div>
         </div>
-    </div>    <script>
+    </div>    <script>        // Wörterbuch für Kinder-Erklärungen
+        const wordExplanations = {
+            'pressefreiheit': 'Pressefreiheit bedeutet, dass Journalisten (Menschen, die Nachrichten schreiben) frei berichten dürfen, ohne dass ihnen jemand verbietet, die Wahrheit zu schreiben.',
+            'demokratie': 'Demokratie bedeutet, dass alle Menschen in einem Land mitbestimmen dürfen, wer das Land regiert. Wie bei einer Klassenwahl in der Schule.',
+            'meinungsfreiheit': 'Meinungsfreiheit bedeutet, dass jeder Mensch sagen darf, was er denkt, solange er anderen damit nicht schadet.',
+            'journalismus': 'Journalismus ist die Arbeit von Menschen, die Nachrichten sammeln und schreiben, damit andere wissen, was in der Welt passiert.',
+            'transparenz': 'Transparenz bedeutet "durchsichtig" oder "offen". Wenn eine Regierung transparent ist, versteckt sie nichts vor den Menschen.',
+            'zivilgesellschaft': 'Zivilgesellschaft sind alle Menschen und Gruppen, die sich freiwillig für wichtige Themen einsetzen, wie Umweltschutz oder Hilfe für andere.',
+            'verfassungsrechtlich': 'Verfassungsrechtlich bedeutet "im Grundgesetz festgeschrieben". Das sind die allerwichtigsten Regeln eines Landes, die schwer zu ändern sind.',
+            'informationskontrolle': 'Informationskontrolle bedeutet, dass jemand entscheidet, welche Nachrichten die Menschen erhalten. Wie ein Filter, der manche Dinge durchlässt und andere nicht.',
+            'meinungsunterdrueckung': 'Meinungsunterdrückung bedeutet, dass Menschen nicht sagen dürfen, was sie denken, oder dafür bestraft werden.',
+            'unreflektiert': 'Unreflektiert bedeutet "ohne nachzudenken". Wie wenn man etwas sofort glaubt, ohne zu überlegen, ob es stimmen könnte.',
+            'perspektiven': 'Perspektiven sind verschiedene Sichtweisen auf dasselbe Thema. Wie wenn zwei Menschen das gleiche Ereignis unterschiedlich erleben.',
+            'vpns': 'VPN steht für "Virtuelles Privates Netzwerk". Das ist wie ein unsichtbarer Tunnel im Internet, durch den niemand sehen kann, was du machst.'
+        };
+
+        // Aktuelle offene Erklärung
+        let currentExplanation = null;
+
+        // Wort-Erklärung anzeigen
+        function showWordExplanation(event, word) {
+            event.stopPropagation();
+            
+            if (currentExplanation) {
+                currentExplanation.remove();
+            }
+            
+            const explanation = wordExplanations[word];
+            if (!explanation) return;
+            
+            const target = event.target;
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'word-explanation';
+            explanationDiv.innerHTML = `
+                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
+                ${explanation}
+            `;
+            
+            target.appendChild(explanationDiv);
+            currentExplanation = explanationDiv;
+            
+            setTimeout(() => {
+                explanationDiv.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                if (currentExplanation === explanationDiv) {
+                    hideWordExplanation();
+                }
+            }, 5000);
+        }
+
+        // Wort-Erklärung verstecken
+        function hideWordExplanation() {
+            if (currentExplanation) {
+                currentExplanation.classList.remove('show');
+                setTimeout(() => {
+                    if (currentExplanation && currentExplanation.parentNode) {
+                        currentExplanation.remove();
+                    }
+                    currentExplanation = null;
+                }, 300);
+            }
+        }
+
+        // Verstecke Erklärung bei Klick außerhalb
+        document.addEventListener('click', (e) => {
+            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
+                hideWordExplanation();
+            }
+        });
+
         // Zurück zur Hauptseite
         window.goBackToMain = function() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         };
 
         // Smooth scrolling for better UX

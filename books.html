@@ -257,6 +257,102 @@
             color: #3498db;
             font-weight: bold;
         }
+        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted #3498db;
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .word-explanation {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 90vw;
+                width: 90vw;
+            }
+            
+            .word-explanation.show {
+                transform: translateX(-50%);
+            }
+            
+            .word-explanation::after {
+                display: none;
+            }
+        }
     </style>
 
     <div class="container">
@@ -283,98 +379,219 @@
         </div>
     </div>
 
-    <script>
+    <script>        // Wörterbuch für Kinder-Erklärungen
+        const wordExplanations = {
+            'verboten': 'Verboten bedeutet, dass man etwas nicht machen oder haben darf. Wie wenn Süßigkeiten vor dem Abendessen verboten sind.',
+            'zensiert': 'Zensiert bedeutet "weggenommen" oder "versteckt". Wenn ein Buch zensiert wird, dürfen Menschen es nicht mehr lesen.',
+            'banned': 'Banned ist das englische Wort für "verboten". Es bedeutet das Gleiche wie verboten.',
+            'propaganda': 'Propaganda sind Informationen, die nur eine Seite zeigen und Menschen zu einer bestimmten Meinung bringen sollen.',
+            'diktatur': 'Eine Diktatur ist ein Land, wo nur eine Person oder eine kleine Gruppe alle Entscheidungen trifft und andere nicht mitbestimmen dürfen.',
+            'blasphemie': 'Blasphemie bedeutet, etwas über Religion zu sagen, was manche Menschen als respektlos empfinden.'
+        };
+
+        // Aktuelle offene Erklärung
+        let currentExplanation = null;
+
+        // Wort-Erklärung anzeigen
+        function showWordExplanation(event, word) {
+            event.stopPropagation();
+            
+            if (currentExplanation) {
+                currentExplanation.remove();
+            }
+            
+            const explanation = wordExplanations[word];
+            if (!explanation) return;
+            
+            const target = event.target;
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'word-explanation';
+            explanationDiv.innerHTML = `
+                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
+                ${explanation}
+            `;
+            
+            target.appendChild(explanationDiv);
+            currentExplanation = explanationDiv;
+            
+            setTimeout(() => {
+                explanationDiv.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                if (currentExplanation === explanationDiv) {
+                    hideWordExplanation();
+                }
+            }, 5000);
+        }
+
+        // Wort-Erklärung verstecken
+        function hideWordExplanation() {
+            if (currentExplanation) {
+                currentExplanation.classList.remove('show');
+                setTimeout(() => {
+                    if (currentExplanation && currentExplanation.parentNode) {
+                        currentExplanation.remove();
+                    }
+                    currentExplanation = null;
+                }, 300);
+            }
+        }
+
+        // Verstecke Erklärung bei Klick außerhalb
+        document.addEventListener('click', (e) => {
+            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
+                hideWordExplanation();
+            }
+        });
+
         // Bücher-Kartenstapel Daten
         const bannedBooks = [
             {
                 title: "1984",
                 author: "George Orwell",
                 description: "Dystopischer Roman über totale Überwachung und Gedankenkontrolle in einem autoritären Staat.",
-                bannedIn: "Russland, China, Nordkorea, Belarus",
+                bannedIn: "Russland, China, Nordkorea, Belarus - wegen Kritik an autoritären Regimen",
                 icon: "📖"
             },
             {
                 title: "Fahrenheit 451",
                 author: "Ray Bradbury", 
                 description: "Ironisch: Ein Buch über Bücherverbrennung, das selbst zensiert wird.",
-                bannedIn: "USA (verschiedene Schulbezirke), China",
+                bannedIn: "USA (verschiedene Schulbezirke), China - wegen 'subversiver Ideen'",
                 icon: "🔥"
             },
             {
                 title: "Animal Farm",
                 author: "George Orwell",
                 description: "Politische Fabel über Macht und Korruption, getarnt als Tierfarm-Geschichte.",
-                bannedIn: "Sowjetunion, China, Nordkorea, Kuba",
+                bannedIn: "Sowjetunion, China, Nordkorea, Kuba - Anti-kommunistische Allegorie",
                 icon: "🐷"
             },
             {
                 title: "Die Satanischen Verse",
                 author: "Salman Rushdie",
-                description: "Kontroverse Darstellung religiöser Themen führte zu internationalen Protesten.",
-                bannedIn: "Iran, Pakistan, Indien, Bangladesch, Saudi-Arabien",
+                description: "Kontroverse Darstellung religiöser Themen führte zu internationalen Protesten und Fatwa.",
+                bannedIn: "Iran, Pakistan, Indien, Bangladesch, Saudi-Arabien - Blasphemie-Vorwürfe",
                 icon: "📜"
             },
             {
                 title: "Maus",
                 author: "Art Spiegelman",
-                description: "Graphic Novel über den Holocaust - wegen 'anstößiger Sprache' verboten.",
-                bannedIn: "USA (Tennessee), Russland",
+                description: "Pulitzer-preisgekrönte Graphic Novel über den Holocaust durch Tierfiguren dargestellt.",
+                bannedIn: "USA (Tennessee), Russland - wegen 'anstößiger Sprache' und Nacktheit",
                 icon: "🐭"
-            },
-            {
-                title: "Harry Potter Serie",
-                author: "J.K. Rowling",
-                description: "Wegen 'Hexerei' und 'Okkultismus' in religiösen Gemeinden umstritten.",
-                bannedIn: "Teile der USA, VAE, Saudi-Arabien",
-                icon: "⚡"
-            },
-            {
-                title: "Mein Kampf",
-                author: "Adolf Hitler",
-                description: "Nazi-Ideologie und Antisemitismus - in vielen Ländern nur kommentiert erlaubt.",
-                bannedIn: "Deutschland (unkommentiert), Österreich, Frankreich",
-                icon: "⚠️"
             },
             {
                 title: "Lolita",
                 author: "Vladimir Nabokov",
-                description: "Kontroverse Thematik führte zu Verboten wegen 'Obszönität'.",
-                bannedIn: "Südafrika, Argentinien, Neuseeland (zeitweise)",
+                description: "Literarischer Klassiker über obsessive Liebe eines Erwachsenen zu einem Kind.",
+                bannedIn: "Südafrika, Argentinien, Frankreich - wegen Pädophilie-Thematik",
                 icon: "🚫"
             },
             {
                 title: "The Anarchist Cookbook",
                 author: "William Powell",
-                description: "Anleitungen für Bomben und Waffen - Sicherheitsrisiko.",
-                bannedIn: "Australien, Großbritannien, Kanada",
+                description: "Handbuch mit Anleitungen für Bomben, Waffen und Drogen aus den 1970ern.",
+                bannedIn: "Australien, Großbritannien, Deutschland - Terrorismus-Gefahr",
                 icon: "💣"
             },
             {
                 title: "Areopagitica",
                 author: "John Milton",
-                description: "Ironisch: Ein Essay GEGEN Zensur, der selbst zensiert wurde.",
-                bannedIn: "England (17. Jahrhundert), verschiedene Autokratien",
+                description: "Bahnbrechender Essay gegen Vorzensur und für Meinungsfreiheit von 1644.",
+                bannedIn: "England (17. Jahrhundert) - Kritik an staatlicher Zensur",
                 icon: "✍️"
             },
             {
                 title: "The Jungle",
                 author: "Upton Sinclair",
-                description: "Aufdeckung von Missständen in der Fleischindustrie führte zu Verboten.",
-                bannedIn: "USA (von Fleischfirmen bekämpft), verschiedene Länder",
+                description: "Enthüllungsroman über unmenschliche Arbeitsbedingungen in Chicagoer Schlachthöfen.",
+                bannedIn: "USA (Fleischindustrie-Lobbyismus), verschiedene Länder - Wirtschaftskritik",
                 icon: "🏭"
             },
             {
                 title: "Gender Queer",
                 author: "Maia Kobabe",
-                description: "LGBTQ+-Thematik führt zu aktuellen Schulverboten in den USA.",
-                bannedIn: "USA (über 40 Schulbezirke), konservative Gemeinden",
+                description: "Autobiographische Graphic Novel über nicht-binäre Geschlechtsidentität.",
+                bannedIn: "USA (über 40 Schulbezirke) - LGBTQ+-Inhalte, explizite Darstellungen",
                 icon: "🏳️‍🌈"
+            },
+            {
+                title: "To Kill a Mockingbird",
+                author: "Harper Lee",
+                description: "Klassiker über Rassismus im amerikanischen Süden der 1930er Jahre.",
+                bannedIn: "USA (verschiedene Schulen) - wegen N-Wort und 'White Savior'-Kritik",
+                icon: "🕊️"
+            },
+            {
+                title: "The Catcher in the Rye",
+                author: "J.D. Salinger",
+                description: "Coming-of-Age Roman über rebellischen Teenager Holden Caulfield.",
+                bannedIn: "USA, Australien - wegen Flüchen, Sexualität und 'rebellischer Einstellung'",
+                icon: "🎭"
+            },
+            {
+                title: "Brave New World",
+                author: "Aldous Huxley",
+                description: "Dystopischer Roman über eine kontrollierte Gesellschaft mit Drogen und Konditionierung.",
+                bannedIn: "Irland, Indien - wegen Promiskuität, Drogenmissbrauch und Anti-Religion",
+                icon: "🧬"
+            },
+            {
+                title: "The Handmaid's Tale",
+                author: "Margaret Atwood",
+                description: "Dystopie über theokratische Diktatur und reproduktive Versklavung von Frauen.",
+                bannedIn: "USA (Texas, Florida) - wegen 'politischer Indoktrination' und Feminismus",
+                icon: "👠"
+            },
+            {
+                title: "Persepolis",
+                author: "Marjane Satrapi",
+                description: "Autobiographische Graphic Novel über Aufwachsen während der iranischen Revolution.",
+                bannedIn: "Iran, Libanon - Kritik am islamischen Regime und westliche Lebensweise",
+                icon: "🧕"
+            },
+            {
+                title: "The Absolutely True Diary of a Part-Time Indian",
+                author: "Sherman Alexie",
+                description: "Semi-Autobiographischer Roman über Native American Teenager.",
+                bannedIn: "USA (verschiedene Schulbezirke) - Masturbation, Alkoholismus, Schimpfwörter",
+                icon: "📔"
+            },
+            {
+                title: "Thirteen Reasons Why",
+                author: "Jay Asher",
+                description: "Jugendroman über Teenager-Suizid und die Gründe dafür.",
+                bannedIn: "USA, Kanada - Suizid-Romantisierung und Nachahmungsgefahr",
+                icon: "📼"
+            },
+            {
+                title: "The Hate U Give",
+                author: "Angie Thomas",
+                description: "Roman über Polizeigewalt gegen Schwarze Jugendliche und Black Lives Matter.",
+                bannedIn: "USA (verschiedene Schulen) - 'Anti-Polizei'-Propaganda und Rassismus-Thematik",
+                icon: "✊"
+            },
+            {
+                title: "Captain Underpants",
+                author: "Dav Pilkey",
+                description: "Kinderbuchreihe über zwei Grundschüler und ihren Superhelden in Unterhosen.",
+                bannedIn: "USA (Grundschulen) - 'unangemessener Humor', Autorität untergraben",
+                icon: "🩲"
+            },
+            {
+                title: "The Kite Runner",
+                author: "Khaled Hosseini",
+                description: "Roman über Freundschaft und Verrat vor dem Hintergrund der afghanischen Geschichte.",
+                bannedIn: "Afghanistan - Kritik an Taliban, homosexuelle Vergewaltigung",
+                icon: "🪁"
             }
         ];
         
         let currentCardIndex = 0;        // Zurück zur Hauptseite
         window.goBackToMain = function() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         };
 
         window.openModal = function(modalId) {
@@ -407,13 +624,11 @@
             
             updateCounter();
             console.log('Book stack initialized with', stack.children.length, 'cards');
-        };
-          // Buchkarte erstellen
+        };          // Buchkarte erstellen
         function createBookCard(book) {
             const card = document.createElement('div');
             card.className = 'book-card-stack';
             card.innerHTML = `
-                <div class="book-header">📚 Verbotenes Buch</div>
                 <div class="book-icon">${book.icon}</div>
                 <div class="book-title">${book.title}</div>
                 <div class="book-author">${book.author}</div>

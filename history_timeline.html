@@ -6,7 +6,86 @@
     <title>Geschichte der Zensur - Interaktiver Zeitstrahl</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted rgba(255, 255, 255, 0.8);
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {…}pires" content="0" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -498,9 +577,82 @@
         <div class="detail-title" id="detailTitle"></div>
         <div class="detail-description" id="detailDescription"></div>
         <div class="detail-impact" id="detailImpact"></div>
-    </div>
+    </div>    <script>        // Wörterbuch für Kinder-Erklärungen
+        const wordExplanations = {
+            'antike': 'Die Antike ist eine sehr lange Zeit her (vor über 2000 Jahren), als die alten Römer und Griechen lebten.',
+            'mittelalter': 'Das Mittelalter war eine Zeit vor etwa 500-1000 Jahren, als es noch Ritter und Burgen gab.',
+            'inquisition': 'Die Inquisition war eine Gruppe von Menschen, die früher entschieden hat, was Menschen glauben durften.',
+            'buchdruck': 'Buchdruck war eine wichtige Erfindung, mit der man viele Bücher schnell herstellen konnte, statt sie per Hand zu schreiben.',
+            'aufklaerung': 'Die Aufklärung war eine Zeit, in der Menschen anfingen, selbst zu denken und Fragen zu stellen.',
+            'nationalsozialismus': 'Der Nationalsozialismus war eine sehr schlimme Zeit in Deutschland, als Adolf Hitler regierte und viele Menschen verfolgt wurden.',
+            'propaganda': 'Propaganda sind Informationen, die nur eine Seite zeigen und Menschen zu einer bestimmten Meinung bringen sollen.',
+            'diktatur': 'Eine Diktatur ist ein Land, wo nur eine Person oder eine kleine Gruppe alle Entscheidungen trifft.',
+            'internet': 'Das Internet ist ein großes Netzwerk, das Computer auf der ganzen Welt miteinander verbindet.',
+            'social media': 'Social Media sind Internetseiten wie TikTok oder Instagram, wo Menschen Bilder und Nachrichten teilen.',
+            'exkommunikation': 'Exkommunikation bedeutet, dass die Kirche jemanden ausschließt. Wie wenn du nicht mehr mitspielen darfst.',
+            'ironischerweise': 'Ironischerweise bedeutet "seltsamerweise" oder "lustig ist, dass...". Es passiert etwas Unerwartetes.',
+            'prophetische': 'Prophetisch bedeutet "vorhersagend". Wie wenn jemand in die Zukunft schauen kann und richtig liegt.',
+            'fatwa': 'Eine Fatwa ist ein religiöses Urteil im Islam. Wie ein strenges Gebot, das befolgt werden soll.',
+            'revolutionaere': 'Revolutionär bedeutet "alles verändernd". Wie eine Erfindung, die die ganze Welt anders macht.',
+            'systematisch': 'Systematisch bedeutet "geplant und geordnet". Es passiert nicht zufällig, sondern jemand macht es mit Absicht.'
+        };
 
-    <script>
+        // Aktuelle offene Erklärung
+        let currentExplanation = null;
+
+        // Wort-Erklärung anzeigen
+        function showWordExplanation(event, word) {
+            event.stopPropagation();
+            
+            if (currentExplanation) {
+                currentExplanation.remove();
+            }
+            
+            const explanation = wordExplanations[word];
+            if (!explanation) return;
+            
+            const target = event.target;
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'word-explanation';
+            explanationDiv.innerHTML = `
+                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
+                ${explanation}
+            `;
+            
+            target.appendChild(explanationDiv);
+            currentExplanation = explanationDiv;
+            
+            setTimeout(() => {
+                explanationDiv.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                if (currentExplanation === explanationDiv) {
+                    hideWordExplanation();
+                }
+            }, 5000);
+        }
+
+        // Wort-Erklärung verstecken
+        function hideWordExplanation() {
+            if (currentExplanation) {
+                currentExplanation.classList.remove('show');
+                setTimeout(() => {
+                    if (currentExplanation && currentExplanation.parentNode) {
+                        currentExplanation.remove();
+                    }
+                    currentExplanation = null;
+                }, 300);
+            }
+        }
+
+        // Verstecke Erklärung bei Klick außerhalb
+        document.addEventListener('click', (e) => {
+            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
+                hideWordExplanation();
+            }
+        });
+
         // Event data
         const eventData = {
             sokrates: {
@@ -521,7 +673,7 @@
                 year: '1559',
                 icon: '📋',
                 title: 'Index Librorum Prohibitorum',
-                description: 'Die katholische Kirche erstellt die erste offizielle Liste verbotener Bücher. Wer diese Bücher liest, dem droht die Exkommunikation und ewige Verdammnis!',
+                description: 'Die katholische Kirche erstellt die erste offizielle Liste verbotener Bücher. Wer diese Bücher liest, dem droht die <span class="difficult-word" onclick="showWordExplanation(event, \'exkommunikation\')">Exkommunikation</span> und ewige Verdammnis!',
                 impact: '⛪ 400 Jahre lang bestimmte die Kirche, was Menschen lesen dürfen!'
             },
             remarque: {
@@ -542,21 +694,21 @@
                 year: '1953',
                 icon: '🔥',
                 title: 'Fahrenheit 451 erscheint',
-                description: 'Ray Bradbury veröffentlicht seine düstere Vision einer Zukunft, in der Bücher verboten sind. Ironischerweise wird das Buch selbst später zensiert!',
-                impact: '🔮 Eine prophetische Warnung vor unserer digitalen Zukunft!'
+                description: 'Ray Bradbury veröffentlicht seine düstere Vision einer Zukunft, in der Bücher verboten sind. <span class="difficult-word" onclick="showWordExplanation(event, \'ironischerweise\')">Ironischerweise</span> wird das Buch selbst später zensiert!',
+                impact: '🔮 Eine <span class="difficult-word" onclick="showWordExplanation(event, \'prophetische\')">prophetische</span> Warnung vor unserer digitalen Zukunft!'
             },
             rushdie: {
                 year: '1989',
                 icon: '🏃',
                 title: 'Salman Rushdie - Todesurteil',
-                description: 'Nach der Veröffentlichung der "Satanischen Verse" wird eine Fatwa gegen Rushdie ausgesprochen. Er muss jahrelang im Versteck leben - nur wegen eines Buches!',
+                description: 'Nach der Veröffentlichung der "Satanischen Verse" wird eine <span class="difficult-word" onclick="showWordExplanation(event, \'fatwa\')">Fatwa</span> gegen Rushdie ausgesprochen. Er muss jahrelang im Versteck leben - nur wegen eines Buches!',
                 impact: '💰 3 Millionen Dollar Kopfgeld auf einen Autor!'
             },
             arabischer: {
                 year: '2010',
                 icon: '🌐',
                 title: 'Arabischer Frühling & Zensur',
-                description: 'Regierungen weltweit erkennen die revolutionäre Macht sozialer Medien und beginnen systematisch, das Internet zu zensieren und komplett abzuschalten.',
+                description: 'Regierungen weltweit erkennen die <span class="difficult-word" onclick="showWordExplanation(event, \'revolutionaere\')">revolutionäre</span> Macht sozialer Medien und beginnen <span class="difficult-word" onclick="showWordExplanation(event, \'systematisch\')">systematisch</span>, das Internet zu zensieren und komplett abzuschalten.',
                 impact: '📱 Der Beginn der digitalen Zensur-Ära!'
             },
             ki: {
@@ -589,7 +741,7 @@
 
         // Back to main page
         window.goBackToMain = function() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         }        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Setup scroll animations

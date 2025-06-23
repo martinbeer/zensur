@@ -353,11 +353,104 @@
             line-height: 1.6;
         }
 
-        /* Responsive Design */
+        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted #3498db;
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }        /* Responsive Design */
         @media (max-width: 768px) {
             .examples-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
+            }
+            
+            .word-explanation {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 90vw;
+                width: 90vw;
+            }
+            
+            .word-explanation.show {
+                transform: translateX(-50%);
+            }
+            
+            .word-explanation::after {
+                display: none;
             }
             
             .header h1 {
@@ -440,7 +533,7 @@
                     </div>
                 </div>
                 <div class="example-content">
-                    Drakonische Mediengesetze machen bereits das Wort "Krieg" für die Ukraine-Invasion strafbar. Bis zu 15 Jahre Haft für "Fake News" über das Militär.
+                    <span class="difficult-word" onclick="showWordExplanation(event, 'drakonische')">Drakonische</span> Mediengesetze machen bereits das Wort "Krieg" für die Ukraine-Invasion strafbar. Bis zu 15 Jahre Haft für "Fake News" über das Militär.
                 </div>
                 <div class="example-stats">
                     <ul>
@@ -484,14 +577,13 @@
                     </div>
                 </div>
                 <div class="example-content">
-                    Große Tech-Konzerne entfernen Inhalte ohne transparente Begründung. Shadow-Banning macht Inhalte unsichtbar, ohne dass Nutzer es merken.
+                    Große Tech-Konzerne entfernen Inhalte ohne <span class="difficult-word" onclick="showWordExplanation(event, 'transparente')">transparente</span> Begründung. <span class="difficult-word" onclick="showWordExplanation(event, 'shadowbanning')">Shadow-Banning</span> macht Inhalte unsichtbar, ohne dass Nutzer es merken.
                 </div>
                 <div class="example-stats">
                     <ul>
-                        <li>YouTube: Automatische KI-Löschung</li>
-                        <li>Meta: Faktenchecker mit politischer Agenda</li>
-                        <li>Twitter/X: Willkürliche Suspendierungen</li>
-                        <li>TikTok: Algorithmus bevorzugt bestimmte Meinungen</li>
+                        <li>YouTube: Automatische KI-Löschung</li>                        <li>Meta: <span class="difficult-word" onclick="showWordExplanation(event, 'faktenchecker')">Faktenchecker</span> mit politischer Agenda</li>
+                        <li>Twitter/X: <span class="difficult-word" onclick="showWordExplanation(event, 'willkuerliche')">Willkürliche</span> Suspendierungen</li>
+                        <li>TikTok: <span class="difficult-word" onclick="showWordExplanation(event, 'algorithmus')">Algorithmus</span> bevorzugt bestimmte Meinungen</li>
                     </ul>
                 </div>
                 <span class="impact-badge">Milliarden von Nutzern betroffen</span>
@@ -619,12 +711,84 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>    <script>        // Wörterbuch für Kinder-Erklärungen
+        const wordExplanations = {
+            'zensur': 'Zensur bedeutet, dass jemand entscheidet, was andere Menschen lesen, hören oder sehen dürfen. Es ist wie wenn ein Erwachsener bestimmt, welche Filme du schauen darfst.',
+            'diktatur': 'Eine Diktatur ist ein Land, wo nur eine Person oder eine kleine Gruppe alle Entscheidungen trifft und andere nicht mitbestimmen dürfen.',
+            'regime': 'Ein Regime ist eine Regierung, die oft mit Gewalt oder unfairen Mitteln an der Macht bleibt.',
+            'opposition': 'Opposition sind Menschen oder Gruppen, die gegen die Regierung sind und andere Ideen haben.',
+            'journalisten': 'Journalisten sind Menschen, die Nachrichten sammeln und schreiben, damit andere wissen, was in der Welt passiert.',
+            'propaganda': 'Propaganda sind Informationen, die nur eine Seite zeigen und Menschen zu einer bestimmten Meinung bringen sollen.',
+            'social media': 'Social Media sind Internetseiten wie TikTok oder Instagram, wo Menschen Bilder und Nachrichten teilen.',
+            'algorithmus': 'Ein Algorithmus ist wie ein Rezept für Computer, das entscheidet, welche Inhalte du zu sehen bekommst.',
+            'demokratie': 'Demokratie bedeutet, dass alle Menschen in einem Land mitbestimmen dürfen, wer das Land regiert.',
+            'meinungsfreiheit': 'Meinungsfreiheit bedeutet, dass jeder Mensch sagen darf, was er denkt, solange er anderen damit nicht schadet.',
+            'drakonische': 'Drakonisch bedeutet "sehr streng und hart". Wie wenn ein Lehrer für einen kleinen Fehler eine riesige Strafe gibt.',
+            'transparente': 'Transparent bedeutet "durchsichtig" oder "klar". Wenn etwas transparent ist, kann jeder verstehen, warum es gemacht wurde.',
+            'shadowbanning': 'Shadow-Banning bedeutet, dass deine Posts heimlich versteckt werden. Du merkst es nicht, aber andere sehen deine Beiträge nicht mehr.',
+            'faktenchecker': 'Faktenchecker sind Menschen oder Programme, die prüfen, ob Nachrichten wahr oder falsch sind.',
+            'willkuerliche': 'Willkürlich bedeutet "ohne echten Grund" oder "zufällig". Wie wenn jemand Regeln macht, die keinen Sinn ergeben.'
+        };
 
-    <script>
+        // Aktuelle offene Erklärung
+        let currentExplanation = null;
+
+        // Wort-Erklärung anzeigen
+        function showWordExplanation(event, word) {
+            event.stopPropagation();
+            
+            if (currentExplanation) {
+                currentExplanation.remove();
+            }
+            
+            const explanation = wordExplanations[word];
+            if (!explanation) return;
+            
+            const target = event.target;
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'word-explanation';
+            explanationDiv.innerHTML = `
+                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
+                ${explanation}
+            `;
+            
+            target.appendChild(explanationDiv);
+            currentExplanation = explanationDiv;
+            
+            setTimeout(() => {
+                explanationDiv.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                if (currentExplanation === explanationDiv) {
+                    hideWordExplanation();
+                }
+            }, 5000);
+        }
+
+        // Wort-Erklärung verstecken
+        function hideWordExplanation() {
+            if (currentExplanation) {
+                currentExplanation.classList.remove('show');
+                setTimeout(() => {
+                    if (currentExplanation && currentExplanation.parentNode) {
+                        currentExplanation.remove();
+                    }
+                    currentExplanation = null;
+                }, 300);
+            }
+        }
+
+        // Verstecke Erklärung bei Klick außerhalb
+        document.addEventListener('click', (e) => {
+            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
+                hideWordExplanation();
+            }
+        });
+
         // Zurück zur Hauptseite
         window.goBackToMain = function() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         };
 
         // Smooth scrolling für interne Links

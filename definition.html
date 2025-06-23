@@ -273,6 +273,82 @@
             color: #856404;
             margin: 0;
             line-height: 1.6;
+        }        /* Worterklärungen für Kinder */
+        .difficult-word {
+            border-bottom: 2px dotted #3498db;
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .difficult-word:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+        
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+        
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
         }
 
         /* Responsive Design */
@@ -288,6 +364,23 @@
             
             .modal-body {
                 padding: 20px 15px;
+            }
+            
+            .word-explanation {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 90vw;
+                width: 90vw;
+            }
+            
+            .word-explanation.show {
+                transform: translateX(-50%);
+            }
+            
+            .word-explanation::after {
+                display: none;
             }
         }
     </style>
@@ -310,12 +403,11 @@
                     <!-- Main Definition -->
                     <div class="definition-card">
                         <div class="definition-icon">📖</div>
-                        <h2 class="definition-title">Definition von Zensur</h2>
-                        <div class="definition-text">
-                            <strong>Zensur</strong> (lateinisch <em>censura</em>) ist die systematische Kontrolle, Unterdrückung oder Manipulation von Informationen, Meinungen oder künstlerischen Ausdrucksformen durch staatliche oder private Institutionen.
+                        <h2 class="definition-title">Definition von Zensur</h2>                        <div class="definition-text">
+                            <strong><span class="difficult-word" onclick="showWordExplanation(event, 'zensur')">Zensur</span></strong> (lateinisch <em>censura</em>) ist die <span class="difficult-word" onclick="showWordExplanation(event, 'systematische')">systematische</span> Kontrolle, Unterdrückung oder <span class="difficult-word" onclick="showWordExplanation(event, 'manipulation')">Manipulation</span> von Informationen, Meinungen oder künstlerischen Ausdrucksformen durch staatliche oder private <span class="difficult-word" onclick="showWordExplanation(event, 'institutionen')">Institutionen</span>.
                         </div>
                         <div class="definition-highlight">
-                            💡 Zensur kann präventiv (vor der Veröffentlichung) oder repressiv (nach der Veröffentlichung) erfolgen und reicht von subtilen Einflussnahmen bis hin zu direkten Verboten.
+                            💡 <span class="difficult-word" onclick="showWordExplanation(event, 'zensur')">Zensur</span> kann <span class="difficult-word" onclick="showWordExplanation(event, 'praeventiv')">präventiv</span> (vor der Veröffentlichung) oder <span class="difficult-word" onclick="showWordExplanation(event, 'repressiv')">repressiv</span> (nach der Veröffentlichung) erfolgen und reicht von subtilen Einflussnahmen bis hin zu direkten Verboten.
                         </div>
                     </div>
 
@@ -336,7 +428,7 @@
 
                             <div class="type-card">
                                 <h3>⚡ Repressive Zensur</h3>
-                                <p><strong>Nach der Veröffentlichung:</strong> Bereits veröffentlichte Inhalte werden nachträglich verboten, gelöscht oder sanktioniert.</p>
+                                <p><strong>Nach der Veröffentlichung:</strong> Bereits veröffentlichte Inhalte werden nachträglich verboten, gelöscht oder <span class="difficult-word" onclick="showWordExplanation(event, 'sanktioniert')">sanktioniert</span>.</p>
                                 <ul>
                                     <li>Buchverbote und -verbrennungen</li>
                                     <li>Löschung von Social Media Posts</li>
@@ -358,18 +450,17 @@
 
                             <div class="type-card">
                                 <h3>🏢 Private Zensur</h3>
-                                <p><strong>Durch Unternehmen:</strong> Kontrolle durch private Akteure wie Tech-Konzerne, Verlage oder Plattformbetreiber.</p>
+                                <p><strong>Durch Unternehmen:</strong> Kontrolle durch private <span class="difficult-word" onclick="showWordExplanation(event, 'akteure')">Akteure</span> wie Tech-Konzerne, Verlage oder <span class="difficult-word" onclick="showWordExplanation(event, 'plattformbetreiber')">Plattformbetreiber</span>.</p>
                                 <ul>
-                                    <li>Social Media Richtlinien</li>
-                                    <li>Algorithmus-Manipulation</li>
-                                    <li>Shadow-Banning</li>
+                                    <li>Social Media Richtlinien</li>                                    <li><span class="difficult-word" onclick="showWordExplanation(event, 'algorithmus')">Algorithmus</span>-Manipulation</li>
+                                    <li><span class="difficult-word" onclick="showWordExplanation(event, 'shadowbanning')">Shadow-Banning</span></li>
                                     <li>Werbekunden-Druck</li>
                                 </ul>
                             </div>
 
                             <div class="type-card">
                                 <h3>⛪ Religiöse Zensur</h3>
-                                <p><strong>Durch Glaubensgemeinschaften:</strong> Kontrolle von Inhalten, die als blasphemisch oder gegen religiöse Lehren verstoßend betrachtet werden.</p>
+                                <p><strong>Durch Glaubensgemeinschaften:</strong> Kontrolle von Inhalten, die als <span class="difficult-word" onclick="showWordExplanation(event, 'blasphemisch')">blasphemisch</span> oder gegen religiöse Lehren verstoßend betrachtet werden.</p>
                                 <ul>
                                     <li>Blasphemie-Gesetze</li>
                                     <li>Kirchliche Bücherindizes</li>
@@ -389,13 +480,11 @@
                                 </ul>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Legal Framework -->
+                    </div>                    <!-- Legal Framework -->
                     <div class="examples-section">
-                        <h2>⚖️ Rechtliche Grenzen in Deutschland</h2>
+                        <h2>⚖️ Rechtliche Grenzen in Österreich</h2>
                         <div class="definition-highlight" style="background: linear-gradient(135deg, #74b9ff, #0984e3);">
-                            📜 <strong>Artikel 5 Grundgesetz:</strong> "Jeder hat das Recht, seine Meinung in Wort, Schrift und Bild frei zu äußern und zu verbreiten..."
+                            📜 <strong>Artikel 13 Staatsgrundgesetz:</strong> "Jedermann hat das Recht, durch Wort, Schrift, Druck oder durch bildliche Darstellung seine Meinung [...] frei zu äußern."
                         </div>
                         
                         <div class="types-grid">
@@ -405,17 +494,17 @@
                                     <li>Politische Kritik</li>
                                     <li>Künstlerische Freiheit</li>
                                     <li>Wissenschaftliche Forschung</li>
-                                    <li>Pressefreiheit</li>
+                                    <li>Pressefreiheit (Mediengesetz)</li>
                                 </ul>
                             </div>
 
                             <div class="type-card">
                                 <h3>❌ Grenzen der Meinungsfreiheit</h3>
                                 <ul>
-                                    <li>Volksverhetzung</li>
-                                    <li>Beleidigung und Verleumdung</li>
-                                    <li>Holocaustleugnung</li>
-                                    <li>Verfassungsfeindliche Inhalte</li>
+                                    <li>Verhetzung (§ 283 StGB)</li>
+                                    <li>Üble Nachrede und Verleumdung</li>
+                                    <li>NS-Wiederbetätigung (Verbotsgesetz)</li>
+                                    <li>Staatsfeindliche Verbindungen</li>
                                 </ul>
                             </div>
                         </div>
@@ -436,12 +525,81 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>    <script>        // Wörterbuch für Kinder-Erklärungen
+        const wordExplanations = {
+            'zensur': 'Zensur bedeutet, dass jemand entscheidet, was andere Menschen lesen, hören oder sehen dürfen. Es ist wie wenn ein Erwachsener bestimmt, welche Filme du schauen darfst.',
+            'systematische': 'Systematisch bedeutet "geplant und geordnet". Es passiert nicht zufällig, sondern jemand macht es mit Absicht.',
+            'manipulation': 'Manipulation bedeutet, dass jemand Informationen verändert, um Menschen zu beeinflussen. Wie wenn jemand eine Geschichte anders erzählt.',
+            'institutionen': 'Institutionen sind große Organisationen wie Regierungen, Schulen oder Firmen, die wichtige Entscheidungen treffen.',
+            'praeventiv': 'Präventiv bedeutet "vorher". Es passiert, bevor etwas veröffentlicht wird, wie wenn ein Lehrer einen Aufsatz vor der Abgabe liest.',
+            'repressiv': 'Repressiv bedeutet "nachher". Es passiert, nachdem etwas schon veröffentlicht wurde, wie wenn ein Buch aus der Bibliothek entfernt wird.',
+            'sanktioniert': 'Sanktioniert bedeutet "bestraft". Wenn jemand etwas Verbotenes gemacht hat, bekommt er eine Strafe dafür.',
+            'akteure': 'Akteure sind Menschen oder Organisationen, die etwas tun oder entscheiden. Wie Schauspieler auf einer Bühne, aber im echten Leben.',
+            'plattformbetreiber': 'Das sind Firmen, die Internetseiten wie Facebook, YouTube oder TikTok besitzen und kontrollieren.',
+            'blasphemisch': 'Blasphemisch bedeutet "gotteslästerlich" - etwas, was gegen den Glauben einer Religion verstößt und als respektlos gilt.',
+            'algorithmus': 'Ein Algorithmus ist wie ein Kochrezept für Computer. Er entscheidet, welche Videos du auf YouTube siehst oder welche Posts bei Instagram ganz oben stehen.',
+            'shadowbanning': 'Shadow-Banning bedeutet, dass deine Posts heimlich versteckt werden. Du merkst es nicht, aber andere sehen deine Beiträge nicht mehr.'
+        };
 
-    <script>
+        // Aktuelle offene Erklärung
+        let currentExplanation = null;
+
+        // Wort-Erklärung anzeigen
+        function showWordExplanation(event, word) {
+            event.stopPropagation();
+            
+            if (currentExplanation) {
+                currentExplanation.remove();
+            }
+            
+            const explanation = wordExplanations[word];
+            if (!explanation) return;
+            
+            const target = event.target;
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'word-explanation';
+            explanationDiv.innerHTML = `
+                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
+                ${explanation}
+            `;
+            
+            target.appendChild(explanationDiv);
+            currentExplanation = explanationDiv;
+            
+            setTimeout(() => {
+                explanationDiv.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                if (currentExplanation === explanationDiv) {
+                    hideWordExplanation();
+                }
+            }, 5000);
+        }
+
+        // Wort-Erklärung verstecken
+        function hideWordExplanation() {
+            if (currentExplanation) {
+                currentExplanation.classList.remove('show');
+                setTimeout(() => {
+                    if (currentExplanation && currentExplanation.parentNode) {
+                        currentExplanation.remove();
+                    }
+                    currentExplanation = null;
+                }, 300);
+            }
+        }
+
+        // Verstecke Erklärung bei Klick außerhalb
+        document.addEventListener('click', (e) => {
+            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
+                hideWordExplanation();
+            }
+        });
+
         // Zurück zur Hauptseite
         function goBackToMain() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         }
 
         // Smooth scrolling für bessere UX

@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pressefreiheitsindex 2025 - Weltkarte</title>
-    <!-- Leaflet CSS und JS für OpenStreetMap -->
+    <title>Pressefreiheitsindex 2025 - Weltkarte</title>    <!-- Leaflet CSS und JS für OpenStreetMap -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SheetJS für Excel-Dateien -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <style>
@@ -141,10 +142,20 @@
         #modal-worldmap .modal-body h3 {
             color: #2c3e50;
             margin-bottom: 15px;
+        }        #modal-worldmap .modal-body > div > div {
+            padding: 20px;
         }
 
-        #modal-worldmap .modal-body > div > div {
-            padding: 20px;
+        /* Flash animation for table rows */
+        @keyframes flash {
+            0% { background-color: #e3f2fd; }
+            50% { background-color: #2196f3; color: white; }
+            100% { background-color: #e3f2fd; }
+        }
+
+        /* Hover effect for table rows */
+        .ranking-row:hover {
+            background-color: #f5f5f5 !important;
         }
     </style>
 
@@ -191,397 +202,744 @@
         </div>
     </div>
 
-    <script>
-        // Globale Variablen
+    <script>        // Globale Variablen
         let pressMap = null;
-
-        // Länder-Daten für die Pressefreiheitskarte
-        const countries = [
-                      { name: 'Norwegen', lat: 60.472, lng: 8.4689, score: 7.82, color: '#27ae60', rank: 1,
-      bannedBooks: ['The Anarchist Cookbook (Bombenanleitungen)', 'Mein Kampf (Adolf Hitler) - nur kommentierte Version erlaubt', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Dänemark', lat: 56.2639, lng: 9.5018, score: 8.40, color: '#27ae60', rank: 2,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - Originalversion verboten', 'The Turner Diaries (William Luther Pierce)', 'Mujahideen Poisons Handbook'] },
-    { name: 'Schweden', lat: 60.1282, lng: 18.6435, score: 8.31, color: '#27ae60', rank: 3,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - nur kommentierte Version erlaubt', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion (Antisemitismus)'] },
-    { name: 'Finnland', lat: 61.9241, lng: 25.7482, score: 9.25, color: '#27ae60', rank: 4,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - nur kommentierte Version', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Niederlande', lat: 52.1326, lng: 5.2913, score: 10.74, color: '#27ae60', rank: 5,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - historisch verboten bis 2015', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion'] },
-    { name: 'Estland', lat: 58.5953, lng: 25.0136, score: 11.40, color: '#27ae60', rank: 6,
-      bannedBooks: ['Der Stürmer (Nazi-Propagandazeitung)', 'Sowjetische Kriegspropaganda (u.a. Stalin-Reden)', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Portugal', lat: 39.3999, lng: -8.2245, score: 11.78, color: '#27ae60', rank: 7,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)', 'Hitler\'s Table Talk (Adolf Hitler) - unkommentiert'] },
-    { name: 'Irland', lat: 53.1424, lng: -7.6921, score: 12.33, color: '#27ae60', rank: 8,
-      bannedBooks: ['The Mujahideen Poisons Handbook', 'Blasphemous Rumours (Anti-Religion Essays)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Österreich', lat: 47.5162, lng: 14.5501, score: 13.18, color: '#27ae60', rank: 9,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - unkommentierte Fassung verboten', 'Der Mythus des 20. Jahrhunderts (Alfred Rosenberg)', 'Did Six Million Really Die? (Holocaustleugnung)'] },
-    { name: 'Deutschland', lat: 51.1657, lng: 10.4515, score: 15.24, color: '#27ae60', rank: 10,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - nur kommentierte Version seit 2016', 'Der Mythus des 20. Jahrhunderts (Alfred Rosenberg)', 'Horst-Wessel-Lied und andere NS-Propaganda', 'Scientology-Schriften (einige Bundesländer)'] },
-    { name: 'Schweiz', lat: 46.1850, lng: 8.1268, score: 15.50, color: '#27ae60', rank: 11,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) - nicht frei verkäuflich', 'Did Six Million Really Die? (Holocaustleugnung)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Belgien', lat: 50.5039, lng: 4.4699, score: 16.12, color: '#27ae60', rank: 12,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Protocols of the Elders of Zion', 'Mujahideen Poisons Handbook'] },
-    { name: 'Slowenien', lat: 46.1512, lng: 14.9955, score: 18.85, color: '#27ae60', rank: 13,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Communist Manifesto - kommentierte Version erlaubt', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Tschechien', lat: 49.8175, lng: 15.4730, score: 19.95, color: '#27ae60', rank: 14,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Sowjetische Kriegspropaganda', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Luxemburg', lat: 49.8153, lng: 6.1296, score: 20.12, color: '#27ae60', rank: 15,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Did Six Million Really Die? (Holocaustleugnung)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Island', lat: 64.9631, lng: -19.0208, score: 16.88, color: '#27ae60', rank: 16,
-      bannedBooks: ['The Mujahideen Poisons Handbook', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Neuseeland', lat: -40.9006, lng: 174.8860, score: 19.90, color: '#27ae60', rank: 17,
-      bannedBooks: ['The Great Replacement (Christchurch-Manifest)', 'The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Kanada', lat: 56.1304, lng: -106.3468, score: 18.64, color: '#27ae60', rank: 18,
-      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion'] },
-    { name: 'Australien', lat: -25.2744, lng: 133.7751, score: 19.12, color: '#27ae60', rank: 19,
-      bannedBooks: ['The Great Replacement (Christchurch-Manifest)', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Slowakei', lat: 48.669, lng: 19.699, score: 20.01, color: '#27ae60', rank: 20,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion'] },
-    { name: 'Frankreich', lat: 46.6034, lng: 1.8883, score: 21.16, color: '#2ecc71', rank: 21,
-      bannedBooks: ['Did Six Million Really Die? (Holocaustleugnung)', 'The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Spanien', lat: 40.4637, lng: -3.7492, score: 22.85, color: '#2ecc71', rank: 22,
-      bannedBooks: ['Francisco Franco - Apologia Bücher', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Vereinigtes Königreich', lat: 55.3781, lng: -3.4360, score: 23.17, color: '#2ecc71', rank: 23,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Italien', lat: 41.8719, lng: 12.5674, score: 24.52, color: '#f39c12', rank: 24,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'La Difesa della Razza (Faschistische Zeitschrift)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Litauen', lat: 55.1694, lng: 23.8813, score: 25.89, color: '#f39c12', rank: 25,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Sowjetische Propagandabücher (z.B. Stalin)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Lettland', lat: 56.8796, lng: 24.6032, score: 26.73, color: '#f39c12', rank: 26,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)', 'Sowjetische Propaganda-Literatur'] },
-    { name: 'Zypern', lat: 35.1264, lng: 33.4299, score: 27.01, color: '#f39c12', rank: 27,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Jamaika', lat: 18.1096, lng: -77.2975, score: 28.37, color: '#f39c12', rank: 28,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion', 'Sexually Explicit Literature (z. B. The Story of O)'] },
-    { name: 'Samoa', lat: -13.7590, lng: -172.1046, score: 28.78, color: '#f39c12', rank: 29,
-      bannedBooks: ['Fifty Shades of Grey (E. L. James)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Costa Rica', lat: 9.7489, lng: -83.7534, score: 29.51, color: '#f39c12', rank: 30,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Namibia', lat: -22.9576, lng: 18.4904, score: 29.63, color: '#f39c12', rank: 31,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'South West Africa People\'s Organization (Opposition Pamphlets)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Südafrika', lat: -30.5595, lng: 22.9375, score: 30.22, color: '#f39c12', rank: 32,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'Kommunistische Literatur in Apartheidzeiten (z. B. The Communist Manifesto)'] },
-    { name: 'Seychellen', lat: -4.6796, lng: 55.4920, score: 30.97, color: '#f39c12', rank: 33,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)', 'Extremistische religiöse Literatur'] },
-    { name: 'Trinidad und Tobago', lat: 10.6918, lng: -61.2225, score: 31.45, color: '#f39c12', rank: 34,
-      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Barbados', lat: 13.1939, lng: -59.5432, score: 31.97, color: '#f39c12', rank: 35,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'Obszöne Literatur (regional verboten)'] },
-    { name: 'Chile', lat: -35.6751, lng: -71.5430, score: 32.81, color: '#f39c12', rank: 36,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Bücher zur Pinochet-Kritik in der Diktatur', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Uruguay', lat: -32.5228, lng: -55.7658, score: 33.18, color: '#f39c12', rank: 37,
-      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)', 'Sexuelle Aufklärungsschriften (zeitweise zensiert)'] },
-    { name: 'Suriname', lat: 3.9193, lng: -56.0278, score: 33.64, color: '#f39c12', rank: 38,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Ghana', lat: 7.9465, lng: -1.0232, score: 34.22, color: '#f39c12', rank: 39,
-      bannedBooks: ['Kommunistische Literatur in Kolonialzeit', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Botswana', lat: -22.3285, lng: 24.6849, score: 34.55, color: '#f39c12', rank: 40,
-      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook'] },
-                { name: 'Namibia', lat: -22.9576, lng: 18.4904, score: 35.10, color: '#f39c12', rank: 41,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)', 'Sowjetische Propagandaliteratur (Kolonialzeit)'] },
-    { name: 'Dominica', lat: 15.414999, lng: -61.370976, score: 35.64, color: '#f39c12', rank: 42,
-      bannedBooks: ['Obszöne Literatur (z. B. Naked Lunch von William S. Burroughs)', 'The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook'] },
-    { name: 'Grenada', lat: 12.1165, lng: -61.679, score: 36.12, color: '#f39c12', rank: 43,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Kommunistische Schriften (in der US-Besatzungszeit)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Mongolei', lat: 46.8625, lng: 103.8467, score: 36.90, color: '#f39c12', rank: 44,
-      bannedBooks: ['Chinesische pro-kommunistische Literatur (zeitweise)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Bhutan', lat: 27.5142, lng: 90.4336, score: 37.15, color: '#f39c12', rank: 45,
-      bannedBooks: ['Anti-buddhistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Georgien', lat: 42.3154, lng: 43.3569, score: 38.09, color: '#f39c12', rank: 46,
-      bannedBooks: ['Russische Nationalistenliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Taiwan', lat: 23.6978, lng: 120.9605, score: 39.25, color: '#f39c12', rank: 47,
-      bannedBooks: ['Pro-kommunistische chinesische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Kroatien', lat: 45.1, lng: 15.2, score: 39.87, color: '#f39c12', rank: 48,
-      bannedBooks: ['Kommunistische Jugoslawien-Literatur (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Japan', lat: 36.2048, lng: 138.2529, score: 40.25, color: '#f39c12', rank: 49,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Extreme Pornographie (z. B. Werke von Suehiro Maruo, zensiert)', 'Mein Kampf (Adolf Hitler) – unkommentiert'] },
-    { name: 'USA', lat: 37.0902, lng: -95.7129, score: 40.85, color: '#f39c12', rank: 50,
-      bannedBooks: ['Gender Queer (Maia Kobabe) – in Schulbezirken verboten', 'Maus (Art Spiegelman) – regional zensiert', 'The Hate U Give (Angie Thomas) – Schulverbote'] },
-    { name: 'Fidschi', lat: -17.7134, lng: 178.065, score: 41.76, color: '#f39c12', rank: 51,
-      bannedBooks: ['Oppositionelle politische Schriften während der Militärherrschaft', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Bosnien und Herzegowina', lat: 43.9159, lng: 17.6791, score: 42.40, color: '#f39c12', rank: 52,
-      bannedBooks: ['Nationalistische Hetzschriften (beider Seiten)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Papua-Neuguinea', lat: -6.314993, lng: 143.95555, score: 42.89, color: '#f39c12', rank: 53,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)', 'Satanistische Literatur'] },
-    { name: 'Madagaskar', lat: -18.7669, lng: 46.8691, score: 43.28, color: '#f39c12', rank: 54,
-      bannedBooks: ['Kommunistische Literatur (während Kolonialherrschaft)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Albanien', lat: 41.1533, lng: 20.1683, score: 44.63, color: '#f39c12', rank: 55,
-      bannedBooks: ['Religiöse Literatur während Enver Hoxha-Diktatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Argentinien', lat: -38.4161, lng: -63.6167, score: 45.12, color: '#f39c12', rank: 56,
-      bannedBooks: ['Literatur der Militärdiktatur-Gegner (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Indien', lat: 20.5937, lng: 78.9629, score: 46.14, color: '#f39c12', rank: 57,
-      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Nine Hours to Rama (Stanley Wolpert)', 'Understanding Islam through Hadis (Ram Swarup)'] },
-    { name: 'Indonesien', lat: -0.7893, lng: 113.9213, score: 46.78, color: '#f39c12', rank: 58,
-      bannedBooks: ['Kommunistische Literatur (z. B. The Communist Manifesto)', 'Mein Kampf (Adolf Hitler)', 'LGBTQ+-Literatur in Schulen'] },
-    { name: 'Malaysia', lat: 4.2105, lng: 101.9758, score: 47.53, color: '#f39c12', rank: 59,
-      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)', 'Desire (Haruki Murakami) – zensiert'] },
-    { name: 'Brasilien', lat: -14.235, lng: -51.9253, score: 48.09, color: '#f39c12', rank: 60,
-      bannedBooks: ['Mein Kampf (Adolf Hitler) – historisch verboten', 'LGBTQ+-Jugendbücher (in Bundesstaaten zensiert)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Ecuador', lat: -1.8312, lng: -78.1834, score: 48.72, color: '#f39c12', rank: 61,
-      bannedBooks: ['Oppositionelle Literatur während Correa-Regierung', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Paraguay', lat: -23.4425, lng: -58.4438, score: 49.15, color: '#f39c12', rank: 62,
-      bannedBooks: ['Kommunistische Literatur (Stronistenzeit)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Peru', lat: -9.1899, lng: -75.0152, score: 49.62, color: '#f39c12', rank: 63,
-      bannedBooks: ['Sendero Luminoso Propagandaschriften', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'El Salvador', lat: 13.7942, lng: -88.8965, score: 50.27, color: '#e67e22', rank: 64,
-      bannedBooks: ['Revolutionäre Literatur (Bürgerkriegszeit)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Guatemala', lat: 15.7835, lng: -90.2308, score: 50.91, color: '#e67e22', rank: 65,
-      bannedBooks: ['Literatur indigener Bewegungen (historisch zensiert)', 'Mein Kampf (Adolf Hitler)', 'Kommunistische Manifeste'] },
-         { name: 'Kenia', lat: -0.0236, lng: 37.9062, score: 51.22, color: '#e67e22', rank: 66,
-      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Kommunistische Schriften (Kolonialzeit)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Nepal', lat: 28.3949, lng: 84.1240, score: 51.93, color: '#e67e22', rank: 67,
-      bannedBooks: ['Anti-Monarchie Literatur (historisch)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Tunesien', lat: 33.8869, lng: 9.5375, score: 52.74, color: '#e67e22', rank: 68,
-      bannedBooks: ['Islamkritische Bücher (z. B. The Satanic Verses)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Senegal', lat: 14.4974, lng: -14.4524, score: 53.61, color: '#e67e22', rank: 69,
-      bannedBooks: ['Französische Kolonialkritik (historisch zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Serbien', lat: 44.0165, lng: 21.0059, score: 54.25, color: '#e67e22', rank: 70,
-      bannedBooks: ['Jugoslawien-kritische Literatur (historisch)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Moldau', lat: 47.4116, lng: 28.3699, score: 54.96, color: '#e67e22', rank: 71,
-      bannedBooks: ['Russlandkritische Bücher (zeitweise)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Nordmazedonien', lat: 41.6086, lng: 21.7453, score: 55.48, color: '#e67e22', rank: 72,
-      bannedBooks: ['Nationalistische griechische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Serbien (Kosovo)', lat: 42.6026, lng: 20.9020, score: 56.21, color: '#e67e22', rank: 73,
-      bannedBooks: ['Serbische Nationalpropaganda', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Ukraine', lat: 48.3794, lng: 31.1656, score: 56.82, color: '#e67e22', rank: 74,
-      bannedBooks: ['Russische Propagandaschriften', 'Kommunistische Manifeste', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Angola', lat: -11.2027, lng: 17.8739, score: 57.41, color: '#e67e22', rank: 75,
-      bannedBooks: ['Portugiesische Kolonialliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },    { name: 'Russland', lat: 61.5240, lng: 105.3188, score: 43.42, color: '#e74c3c', rank: 148,
-      bannedBooks: ['1984 (George Orwell)', 'Animal Farm (George Orwell)', 'The Gulag Archipelago (Alexander Solzhenitsyn)', 'Alexei Nawalny – Biografien und Schriften'] },
-    { name: 'Armenien', lat: 40.0691, lng: 45.0382, score: 58.20, color: '#e67e22', rank: 76,
-      bannedBooks: ['Aserbaidschanische Nationalpropaganda', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Aserbaidschan', lat: 40.1431, lng: 47.5769, score: 59.37, color: '#e67e22', rank: 78,
-      bannedBooks: ['Armenisch-nationalistische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Katar', lat: 25.3548, lng: 51.1839, score: 59.93, color: '#e67e22', rank: 79,
-      bannedBooks: ['LGBTQ+-Literatur', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Marokko', lat: 31.7917, lng: -7.0926, score: 60.88, color: '#e67e22', rank: 80,
-      bannedBooks: ['Westliche Feminismus-Literatur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Jordanien', lat: 30.5852, lng: 36.2384, score: 61.12, color: '#e67e22', rank: 81,
-      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Pro-israelische Literatur', 'Mein Kampf (Adolf Hitler)'] },    { name: 'Iran', lat: 32.4279, lng: 53.6880, score: 73.40, color: '#8b0000', rank: 174,
-      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Persepolis (Marjane Satrapi)', 'Reading Lolita in Tehran (Azar Nafisi)', 'The Kite Runner (Khaled Hosseini)'] },
-    { name: 'Libanon', lat: 33.8547, lng: 35.8623, score: 62.11, color: '#e67e22', rank: 84,
-      bannedBooks: ['Israelische Autoren (z. B. Amos Oz)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kuwait', lat: 29.3759, lng: 47.9774, score: 63.25, color: '#e67e22', rank: 85,
-      bannedBooks: ['LGBTQ+-Literatur', 'Erotische Romane (z. B. Fifty Shades of Grey)', 'Mein Kampf (Adolf Hitler)'] },
-        { name: 'Niger', lat: 17.6078, lng: 8.0817, score: 63.95, color: '#e67e22', rank: 86,
-      bannedBooks: ['Französisch-kritische Kolonialliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Nigeria', lat: 9.0820, lng: 8.6753, score: 64.38, color: '#e67e22', rank: 87,
-      bannedBooks: ['Islamkritische Literatur', 'Biafra-Sezessionsliteratur (historisch)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Thailand', lat: 15.8700, lng: 100.9925, score: 64.91, color: '#e67e22', rank: 88,
-      bannedBooks: ['Royalkritische Literatur (z. B. The King Never Smiles)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Palästinensische Gebiete', lat: 31.9522, lng: 35.2332, score: 65.34, color: '#e67e22', rank: 89,
-      bannedBooks: ['Pro-israelische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Uganda', lat: 1.3733, lng: 32.2903, score: 65.87, color: '#e67e22', rank: 90,
-      bannedBooks: ['Homosexualität thematisierende Literatur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Kolumbien', lat: 4.5709, lng: -74.2973, score: 66.19, color: '#e67e22', rank: 91,
-      bannedBooks: ['Guerilla-nahe Literatur (FARC bezogen)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Indien (Jammu & Kashmir)', lat: 33.7782, lng: 76.5762, score: 66.76, color: '#e67e22', rank: 92,
-      bannedBooks: ['Separatistenliteratur', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Tansania', lat: -6.3690, lng: 34.8888, score: 67.11, color: '#e67e22', rank: 93,
-      bannedBooks: ['LGBTQ+-Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Pakistan', lat: 30.3753, lng: 69.3451, score: 67.82, color: '#e67e22', rank: 94,
-      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Ahmadiyya-Literatur', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Philippinen', lat: 13.4100, lng: 122.5600, score: 68.45, color: '#e67e22', rank: 95,
-      bannedBooks: ['Kommunistische Literatur (CPP-NPA bezogen)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Algerien', lat: 28.0339, lng: 1.6596, score: 69.18, color: '#e67e22', rank: 96,
-      bannedBooks: ['Französische Kolonialkritik', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Venezuela', lat: 6.4238, lng: -66.5897, score: 69.89, color: '#e67e22', rank: 97,
-      bannedBooks: ['Regierungskritische Literatur (z. B. Biografien oppositioneller Politiker)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Sudan', lat: 12.8628, lng: 30.2176, score: 70.45, color: '#c0392b', rank: 98,
-      bannedBooks: ['Christliche Missionsliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Äthiopien', lat: 9.1450, lng: 40.4897, score: 71.14, color: '#c0392b', rank: 99,
-      bannedBooks: ['Tigray-Propagandaschriften', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Bangladesch', lat: 23.6850, lng: 90.3563, score: 71.77, color: '#c0392b', rank: 100,
-      bannedBooks: ['Islamkritische Werke (z. B. Taslima Nasreen)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Afghanistan', lat: 33.9391, lng: 67.7100, score: 72.43, color: '#c0392b', rank: 101,
-      bannedBooks: ['Westliche Literatur (z. B. Schulbücher für Mädchen)', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Jemen', lat: 15.5527, lng: 48.5164, score: 73.02, color: '#c0392b', rank: 102,
-      bannedBooks: ['Israelisch-jüdische Literatur', 'Feministische Schriften', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Türkei', lat: 38.9637, lng: 35.2433, score: 73.91, color: '#c0392b', rank: 103,
-      bannedBooks: ['Kurdistische Werke (z. B. Abdullah Öcalan)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Myanmar', lat: 21.9162, lng: 95.9560, score: 74.50, color: '#c0392b', rank: 104,
-      bannedBooks: ['Rohingya-Menschenrechtsberichte', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kambodscha', lat: 12.5657, lng: 104.9910, score: 75.01, color: '#c0392b', rank: 105,
-      bannedBooks: ['Khmer Rouge-Kritik', 'Oppositionelle Politikliteratur', 'The Anarchist Cookbook (William Powell)'] },
-          { name: 'Laos', lat: 19.8563, lng: 102.4955, score: 75.54, color: '#c0392b', rank: 106,
-      bannedBooks: ['Anti-kommunistische Literatur', 'Berichte zu Menschenrechten', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Vietnam', lat: 14.0583, lng: 108.2772, score: 76.18, color: '#c0392b', rank: 107,
-      bannedBooks: ['Kommunismuskritische Werke', 'Pro-demokratische Literatur (z. B. über Dissidenten)', 'Mein Kampf (Adolf Hitler)'] },    { name: 'China', lat: 35.8617, lng: 104.1954, score: 73.07, color: '#8b0000', rank: 173,
-      bannedBooks: ['1984 (George Orwell)', 'Animal Farm (George Orwell)', 'The Tiananmen Papers', 'Wild Swans (Jung Chang)'] },{ name: 'Nordkorea', lat: 40.3399, lng: 127.5101, score: 83.90, color: '#8b0000', rank: 178,
-      bannedBooks: ['Jegliche westliche Literatur', 'Die Bibel', 'Berichte über Kim-Regime', 'Harry Potter (westlicher Einfluss)'] },
-    { name: 'Saudi-Arabien', lat: 23.8859, lng: 45.0792, score: 79.50, color: '#8b0000', rank: 110,
-      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Feministische Literatur', 'LGBTQ+-Literatur', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Libyen', lat: 26.3351, lng: 17.2283, score: 80.03, color: '#8b0000', rank: 111,
-      bannedBooks: ['Anti-Gaddafi-Literatur (historisch)', 'Israelische Publikationen', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Syrien', lat: 34.8021, lng: 38.9968, score: 81.62, color: '#8b0000', rank: 112,
-      bannedBooks: ['Regimekritische Schriften', 'Islamkritische Literatur', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Turkmenistan', lat: 38.9697, lng: 59.5563, score: 82.35, color: '#8b0000', rank: 113,
-      bannedBooks: ['Oppositionelle Literatur', 'Berichte über Präsident Berdimuhamedow', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Usbekistan', lat: 41.3775, lng: 64.5853, score: 82.91, color: '#8b0000', rank: 114,
-      bannedBooks: ['Islamistische Literatur', 'Kritik an Islam Karimow', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Kasachstan', lat: 48.0196, lng: 66.9237, score: 83.44, color: '#8b0000', rank: 115,
-      bannedBooks: ['Regierungskritische Schriften', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Eritrea', lat: 15.1794, lng: 39.7823, score: 83.96, color: '#8b0000', rank: 116,
-      bannedBooks: ['Pressefreiheitspublikationen', 'Religiöse Literatur ohne Registrierung', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Tschad', lat: 15.4542, lng: 18.7322, score: 84.31, color: '#8b0000', rank: 117,
-      bannedBooks: ['Islamkritische Texte', 'Mein Kampf (Adolf Hitler)', 'Protestliteratur'] },
-    { name: 'Zentralafrikanische Republik', lat: 6.6111, lng: 20.9394, score: 84.94, color: '#8b0000', rank: 118,
-      bannedBooks: ['Milizenbezogene Literatur', 'Internationale Menschenrechtsberichte', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Kongo (Republik)', lat: -0.2280, lng: 15.8277, score: 85.52, color: '#8b0000', rank: 119,
-      bannedBooks: ['Kriegsverbrechensberichte', 'Politische Satire', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Demokratische Republik Kongo', lat: -4.0383, lng: 21.7587, score: 86.09, color: '#8b0000', rank: 120,
-      bannedBooks: ['UN-Kritikberichte', 'Rebellenpropaganda', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Somalia', lat: 5.1521, lng: 46.1996, score: 87.62, color: '#8b0000', rank: 121,
-      bannedBooks: ['Nicht-islamische Literatur', 'Frauengleichberechtigungstexte', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Sudan (Süden)', lat: 6.8770, lng: 31.3070, score: 88.33, color: '#8b0000', rank: 122,
-      bannedBooks: ['Oppositionsliteratur', 'Islamkritik', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Burundi', lat: -3.3731, lng: 29.9189, score: 89.17, color: '#8b0000', rank: 123,
-      bannedBooks: ['Kriegsverbrechen-Berichte', 'Politische Biografien', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Ruanda', lat: -1.9403, lng: 29.8739, score: 89.81, color: '#8b0000', rank: 124,
-      bannedBooks: ['Hutu-Propaganda (z. B. RTLM-Radiotranskripte)', 'Genozidleugnungsschriften', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Äquatorialguinea', lat: 1.6508, lng: 10.2679, score: 90.35, color: '#8b0000', rank: 125,
-      bannedBooks: ['Präsidentschaftskritik (Teodoro Obiang)', 'Menschenrechtsdokumentationen', 'The Turner Diaries (William Luther Pierce)'] },
-       { name: 'Gambia', lat: 13.4432, lng: -15.3101, score: 90.98, color: '#8b0000', rank: 126,
-      bannedBooks: ['Regierungskritische Publikationen (unter Jammeh)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Kamerun', lat: 7.3697, lng: 12.3547, score: 91.55, color: '#8b0000', rank: 127,
-      bannedBooks: ['Separatistische Literatur (Ambazonien)', 'Kritik an Paul Biya', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Guinea', lat: 9.9456, lng: -9.6966, score: 91.91, color: '#8b0000', rank: 128,
-      bannedBooks: ['Regierungskritische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Togo', lat: 8.6195, lng: 0.8248, score: 92.42, color: '#8b0000', rank: 129,
-      bannedBooks: ['Anti-Gnassingbé-Literatur', 'Wahlmanipulationsberichte', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Simbabwe', lat: -19.0154, lng: 29.1549, score: 92.98, color: '#8b0000', rank: 130,
-      bannedBooks: ['Kritik an Mugabe-Regierung (historisch)', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Mauretanien', lat: 21.0079, lng: -10.9408, score: 93.51, color: '#8b0000', rank: 131,
-      bannedBooks: ['Islamkritische Literatur', 'Anti-Sklaverei-Literatur', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Gabun', lat: -0.8037, lng: 11.6094, score: 94.02, color: '#8b0000', rank: 132,
-      bannedBooks: ['Regierungskritische Publikationen', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kongo (Demokratische Republik)', lat: -4.0383, lng: 21.7587, score: 94.50, color: '#8b0000', rank: 133,
-      bannedBooks: ['UN-Berichte zu Rohstoffausbeutung', 'Rebellengruppenliteratur', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Malawi', lat: -13.2543, lng: 34.3015, score: 95.03, color: '#8b0000', rank: 134,
-      bannedBooks: ['Homosexualität thematisierende Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Mali', lat: 17.5707, lng: -3.9962, score: 95.47, color: '#8b0000', rank: 135,
-      bannedBooks: ['Jihadistische Literatur (z. B. AQIM bezogen)', 'Kritik an Übergangsregierung', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Burkina Faso', lat: 12.2383, lng: -1.5616, score: 96.04, color: '#8b0000', rank: 136,
-      bannedBooks: ['Islamistische und regierungskritische Literatur', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Mosambik', lat: -18.6657, lng: 35.5296, score: 96.47, color: '#8b0000', rank: 137,
-      bannedBooks: ['Separatistische Literatur (Cabo Delgado)', 'Kritik an Regierung Nyusi', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Eswatini', lat: -26.5225, lng: 31.4659, score: 96.91, color: '#8b0000', rank: 138,
-      bannedBooks: ['Königskritische Literatur', 'Demokratiebewegungsschriften', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Lesotho', lat: -29.6099, lng: 28.2336, score: 97.36, color: '#8b0000', rank: 139,
-      bannedBooks: ['Kritik an Regierung und Monarchie', 'Oppositionsliteratur', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Sambia', lat: -13.1339, lng: 27.8493, score: 97.83, color: '#8b0000', rank: 140,
-      bannedBooks: ['Regierungskritische Berichte (Korruption)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Namibia', lat: -22.9576, lng: 18.4904, score: 98.18, color: '#8b0000', rank: 141,
-      bannedBooks: ['Apartheidskritik (historisch)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Botswana', lat: -22.3285, lng: 24.6849, score: 98.67, color: '#8b0000', rank: 142,
-      bannedBooks: ['LGBTQ+-Literatur (historisch)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Südafrika', lat: -30.5595, lng: 22.9375, score: 99.12, color: '#8b0000', rank: 143,
-      bannedBooks: ['Apartheidskritik (historisch)', 'Kommunistische Manifeste (historisch)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Madagaskar', lat: -18.7669, lng: 46.8691, score: 99.57, color: '#8b0000', rank: 144,
-      bannedBooks: ['Regierungskritik', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Komoren', lat: -11.6455, lng: 43.3333, score: 100.00, color: '#8b0000', rank: 145,
-      bannedBooks: ['Säkularistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-      { name: 'Seychellen', lat: -4.6796, lng: 55.492, score: 100.43, color: '#8b0000', rank: 146,
-      bannedBooks: ['Regierungskritik (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Mauritius', lat: -20.3484, lng: 57.5522, score: 100.88, color: '#8b0000', rank: 147,
-      bannedBooks: ['LGBTQ+-Literatur (bis 2023 eingeschränkt)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'São Tomé und Príncipe', lat: 0.1864, lng: 6.6131, score: 101.34, color: '#8b0000', rank: 148,
-      bannedBooks: ['Oppositionelle Literatur (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kap Verde', lat: 16.5388, lng: -23.0418, score: 101.82, color: '#8b0000', rank: 149,
-      bannedBooks: ['Kommunistische Literatur (Kolonialzeit)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Bahamas', lat: 25.0343, lng: -77.3963, score: 102.27, color: '#8b0000', rank: 150,
-      bannedBooks: ['LGBTQ+-Literatur (zeitweise zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Barbados', lat: 13.1939, lng: -59.5432, score: 102.74, color: '#8b0000', rank: 151,
-      bannedBooks: ['Kritik an Monarchie (vor 2021)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Grenada', lat: 12.1165, lng: -61.679, score: 103.21, color: '#8b0000', rank: 152,
-      bannedBooks: ['Marxistische Literatur (nach US-Invasion)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'St. Lucia', lat: 13.9094, lng: -60.9789, score: 103.66, color: '#8b0000', rank: 153,
-      bannedBooks: ['LGBTQ+-Themen in Schulen', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'St. Vincent und die Grenadinen', lat: 13.2528, lng: -61.1971, score: 104.13, color: '#8b0000', rank: 154,
-      bannedBooks: ['Literatur mit explizitem sexuellen Inhalt', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Antigua und Barbuda', lat: 17.0608, lng: -61.7964, score: 104.58, color: '#8b0000', rank: 155,
-      bannedBooks: ['Sexuelle Aufklärungsliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'St. Kitts und Nevis', lat: 17.3578, lng: -62.783, score: 105.02, color: '#8b0000', rank: 156,
-      bannedBooks: ['Regierungskritik (historisch zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Dominica', lat: 15.4150, lng: -61.3710, score: 105.45, color: '#8b0000', rank: 157,
-      bannedBooks: ['Protestliteratur gegen Regierung', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Trinidad und Tobago', lat: 10.6918, lng: -61.2225, score: 105.89, color: '#8b0000', rank: 158,
-      bannedBooks: ['Islamistische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Vatikanstadt', lat: 41.9029, lng: 12.4534, score: 108.55, color: '#8b0000', rank: 159,
-      bannedBooks: ['Kirchenkritische Literatur', 'LGBTQ+-Theologie', 'The Satanic Bible (Anton LaVey)'] },
-    { name: 'Palau', lat: 7.5149, lng: 134.5825, score: 109.00, color: '#8b0000', rank: 160,
-      bannedBooks: ['Pornografische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Tuvalu', lat: -7.1095, lng: 177.6493, score: 109.43, color: '#8b0000', rank: 161,
-      bannedBooks: ['Extremistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Nauru', lat: -0.5228, lng: 166.9315, score: 109.88, color: '#8b0000', rank: 162,
-      bannedBooks: ['Islamistische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Marshallinseln', lat: 7.1315, lng: 171.1845, score: 110.32, color: '#8b0000', rank: 163,
-      bannedBooks: ['Atomtest-Kritiken gegen USA', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
-    { name: 'Mikronesien', lat: 7.4256, lng: 150.5508, score: 110.75, color: '#8b0000', rank: 164,
-      bannedBooks: ['US-kritische Literatur (militärhistorisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kiribati', lat: -3.3704, lng: -168.734, score: 111.18, color: '#8b0000', rank: 165,
-      bannedBooks: ['Klimawandel-Panikliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Tonga', lat: -21.1789, lng: -175.1982, score: 111.63, color: '#8b0000', rank: 166,
-      bannedBooks: ['Regierungskritik an Monarchie', 'Pornografische Literatur', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Samoa', lat: -13.759, lng: -172.1046, score: 112.09, color: '#8b0000', rank: 167,
-      bannedBooks: ['LGBTQ+-Literatur (gesetzlich eingeschränkt)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Fidschi', lat: -17.7134, lng: 178.065, score: 112.52, color: '#8b0000', rank: 168,
-      bannedBooks: ['Militärkritische Publikationen (Putschzeit)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Vanuatu', lat: -15.3767, lng: 166.9592, score: 112.96, color: '#8b0000', rank: 169,
-      bannedBooks: ['Politische Unabhängigkeitskritik (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Salomonen', lat: -9.6457, lng: 160.1562, score: 113.43, color: '#8b0000', rank: 170,
-      bannedBooks: ['Gewaltverherrlichende Schriften', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Neuseeland', lat: -40.9006, lng: 174.886, score: 113.89, color: '#8b0000', rank: 171,
-      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'Into the River (Ted Dawe – vorübergehend)', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Australien', lat: -25.2744, lng: 133.7751, score: 114.33, color: '#8b0000', rank: 172,
-      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'American Psycho (Bret Easton Ellis – eingeschränkt)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kanada', lat: 56.1304, lng: -106.3468, score: 114.78, color: '#8b0000', rank: 173,
-      bannedBooks: ['Mein Kampf (Adolf Hitler – eingeschränkt erlaubt)', 'The Turner Diaries (William Luther Pierce)', 'Hassliteratur gem. Strafgesetzbuch §319'] },
-    { name: 'USA', lat: 37.0902, lng: -95.7129, score: 115.22, color: '#8b0000', rank: 174,
-      bannedBooks: ['Gender Queer (Maia Kobabe – in vielen Staaten)', 'The Hate U Give (Angie Thomas)', 'The Bluest Eye (Toni Morrison)'] },
-    { name: 'Mexiko', lat: 23.6345, lng: -102.5528, score: 115.67, color: '#8b0000', rank: 175,
-      bannedBooks: ['Narco-kritische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kuba', lat: 21.5218, lng: -77.7812, score: 116.11, color: '#8b0000', rank: 176,
-      bannedBooks: ['Castrokritische Literatur', 'Exilanten-Schriften', 'The Anarchist Cookbook (William Powell)'] },
-    { name: 'Haiti', lat: 18.9712, lng: -72.2852, score: 116.56, color: '#8b0000', rank: 177,
-      bannedBooks: ['Duvalier-kritische Literatur (historisch)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Dominikanische Republik', lat: 18.7357, lng: -70.1627, score: 117.02, color: '#8b0000', rank: 178,
-      bannedBooks: ['Kritik an Trujillo (historisch verboten)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-          { name: 'Jamaika', lat: 18.1096, lng: -77.2975, score: 117.47, color: '#8b0000', rank: 179,
-      bannedBooks: ['LGBTQ+-Themen (zeitweise in Schulen zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Guyana', lat: 4.8604, lng: -58.9302, score: 117.91, color: '#8b0000', rank: 180,
-      bannedBooks: ['Oppositionelle Literatur (Burnham-Ära)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Suriname', lat: 3.9193, lng: -56.0278, score: 118.36, color: '#8b0000', rank: 181,
-      bannedBooks: ['Bouterse-kritische Werke', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Französisch-Guayana', lat: 3.9339, lng: -53.1258, score: 118.80, color: '#8b0000', rank: 182,
-      bannedBooks: ['Separatistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler – kommentiert erlaubt)'] },
-    { name: 'Belize', lat: 17.1899, lng: -88.4976, score: 119.25, color: '#8b0000', rank: 183,
-      bannedBooks: ['Sexualpädagogik in Schulen', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'El Salvador', lat: 13.7942, lng: -88.8965, score: 119.70, color: '#8b0000', rank: 184,
-      bannedBooks: ['Banden- und Gewaltliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Nicaragua', lat: 12.8654, lng: -85.2072, score: 120.14, color: '#8b0000', rank: 185,
-      bannedBooks: ['Ortega-kritische Werke', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Honduras', lat: 13.2, lng: -85.6667, score: 120.59, color: '#8b0000', rank: 186,
-      bannedBooks: ['Drogen- und Korruptionsliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Guatemala', lat: 15.7835, lng: -90.2308, score: 121.03, color: '#8b0000', rank: 187,
-      bannedBooks: ['Indigenenbewegungs-Schriften', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Panama', lat: 8.538, lng: -80.7821, score: 121.48, color: '#8b0000', rank: 188,
-      bannedBooks: ['USA-kritische Literatur (Canal Zone-Historie)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Costa Rica', lat: 9.7489, lng: -83.7534, score: 121.93, color: '#8b0000', rank: 189,
-      bannedBooks: ['Extremistische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Kolumbien', lat: 4.5709, lng: -74.2973, score: 122.37, color: '#8b0000', rank: 190,
-      bannedBooks: ['FARC-Propaganda', 'Narco-Geschichten', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Venezuela', lat: 6.4238, lng: -66.5897, score: 122.82, color: '#8b0000', rank: 191,
-      bannedBooks: ['Regierungskritische Schriften', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Ecuador', lat: -1.8312, lng: -78.1834, score: 123.26, color: '#8b0000', rank: 192,
-      bannedBooks: ['Politisch links- oder rechtsradikale Texte', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Peru', lat: -9.1899, lng: -75.0152, score: 123.71, color: '#8b0000', rank: 193,
-      bannedBooks: ['Sendero Luminoso-Propaganda', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Bolivien', lat: -16.2902, lng: -63.5887, score: 124.15, color: '#8b0000', rank: 194,
-      bannedBooks: ['Regierungskritik (Evo Morales)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
-    { name: 'Paraguay', lat: -23.4425, lng: -58.4438, score: 124.60, color: '#8b0000', rank: 195,
-      bannedBooks: ['Stronista-kritische Literatur (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] }
-            ];
+        let countries = []; // Will be loaded from Excel file        // Function to load data from Excel file
+        async function loadRSFData() {
+            try {
+                console.log('🔄 Loading RSF data from Excel file...');
+                const response = await fetch('RSF_Rangliste_der_Pressefreiheit_2025_Details.xlsx');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                // Assume the data is in the first sheet
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                console.log('📊 Raw Excel data:', jsonData);
+                console.log('📋 Available columns:', Object.keys(jsonData[0] || {}));                // Fallback coordinates for major countries (if not in Excel)
+                const countryCoordinates = {
+                    'Deutschland': { lat: 51.1657, lng: 10.4515 },
+                    'Norway': { lat: 60.472, lng: 8.4689 },
+                    'Norwegen': { lat: 60.472, lng: 8.4689 },
+                    'Denmark': { lat: 56.2639, lng: 9.5018 },
+                    'Dänemark': { lat: 56.2639, lng: 9.5018 },
+                    'Sweden': { lat: 60.1282, lng: 18.6435 },
+                    'Schweden': { lat: 60.1282, lng: 18.6435 },
+                    'Finland': { lat: 61.9241, lng: 25.7482 },
+                    'Finnland': { lat: 61.9241, lng: 25.7482 },
+                    'Netherlands': { lat: 52.1326, lng: 5.2913 },
+                    'Niederlande': { lat: 52.1326, lng: 5.2913 },
+                    'United States': { lat: 37.0902, lng: -95.7129 },
+                    'USA': { lat: 37.0902, lng: -95.7129 },
+                    'China': { lat: 35.8617, lng: 104.1954 },
+                    'Russia': { lat: 61.5240, lng: 105.3188 },
+                    'Russland': { lat: 61.5240, lng: 105.3188 },
+                    'United Kingdom': { lat: 55.3781, lng: -3.4360 },
+                    'Vereinigtes Königreich': { lat: 55.3781, lng: -3.4360 },
+                    'France': { lat: 46.6034, lng: 1.8883 },
+                    'Frankreich': { lat: 46.6034, lng: 1.8883 },
+                    'Italy': { lat: 41.8719, lng: 12.5674 },
+                    'Italien': { lat: 41.8719, lng: 12.5674 },
+                    'Spain': { lat: 40.4637, lng: -3.7492 },
+                    'Spanien': { lat: 40.4637, lng: -3.7492 },
+                    'Belgium': { lat: 50.5039, lng: 4.4699 },
+                    'Belgien': { lat: 50.5039, lng: 4.4699 },
+                    'Austria': { lat: 47.5162, lng: 14.5501 },
+                    'Österreich': { lat: 47.5162, lng: 14.5501 },
+                    'Switzerland': { lat: 46.8182, lng: 8.2275 },
+                    'Schweiz': { lat: 46.8182, lng: 8.2275 },
+                    'Poland': { lat: 51.9194, lng: 19.1451 },
+                    'Polen': { lat: 51.9194, lng: 19.1451 },
+                    'Portugal': { lat: 39.3999, lng: -8.2245 },
+                    'Ireland': { lat: 53.1424, lng: -7.6921 },
+                    'Irland': { lat: 53.1424, lng: -7.6921 },
+                    'Czech Republic': { lat: 49.8175, lng: 15.473 },
+                    'Tschechien': { lat: 49.8175, lng: 15.473 },
+                    'Hungary': { lat: 47.1625, lng: 19.5033 },
+                    'Ungarn': { lat: 47.1625, lng: 19.5033 },
+                    'Slovakia': { lat: 48.669, lng: 19.699 },
+                    'Slowakei': { lat: 48.669, lng: 19.699 },
+                    'Slovenia': { lat: 46.1512, lng: 14.9955 },
+                    'Slowenien': { lat: 46.1512, lng: 14.9955 },
+                    'Estonia': { lat: 58.5953, lng: 25.0136 },
+                    'Estland': { lat: 58.5953, lng: 25.0136 },
+                    'Latvia': { lat: 56.8796, lng: 24.6032 },
+                    'Lettland': { lat: 56.8796, lng: 24.6032 },
+                    'Lithuania': { lat: 55.1694, lng: 23.8813 },
+                    'Litauen': { lat: 55.1694, lng: 23.8813 },
+                    'Romania': { lat: 45.9432, lng: 24.9668 },
+                    'Rumänien': { lat: 45.9432, lng: 24.9668 },
+                    'Bulgaria': { lat: 42.7339, lng: 25.4858 },
+                    'Bulgarien': { lat: 42.7339, lng: 25.4858 },
+                    'Croatia': { lat: 45.1, lng: 15.2 },
+                    'Kroatien': { lat: 45.1, lng: 15.2 },
+                    'Serbia': { lat: 44.0165, lng: 21.0059 },
+                    'Serbien': { lat: 44.0165, lng: 21.0059 },
+                    'Greece': { lat: 39.0742, lng: 21.8243 },
+                    'Griechenland': { lat: 39.0742, lng: 21.8243 },
+                    'Turkey': { lat: 38.9637, lng: 35.2433 },
+                    'Türkei': { lat: 38.9637, lng: 35.2433 },
+                    'Ukraine': { lat: 48.3794, lng: 31.1656 },
+                    'Belarus': { lat: 53.7098, lng: 27.9534 },
+                    'Weißrussland': { lat: 53.7098, lng: 27.9534 },
+                    'Moldova': { lat: 47.4116, lng: 28.3699 },
+                    'Moldau': { lat: 47.4116, lng: 28.3699 },
+                    'Canada': { lat: 56.1304, lng: -106.3468 },
+                    'Kanada': { lat: 56.1304, lng: -106.3468 },
+                    'Mexico': { lat: 23.6345, lng: -102.5528 },
+                    'Mexiko': { lat: 23.6345, lng: -102.5528 },
+                    'Brazil': { lat: -14.235, lng: -51.9253 },
+                    'Brasilien': { lat: -14.235, lng: -51.9253 },
+                    'Argentina': { lat: -38.4161, lng: -63.6167 },
+                    'Argentinien': { lat: -38.4161, lng: -63.6167 },
+                    'Chile': { lat: -35.6751, lng: -71.543 },
+                    'Japan': { lat: 36.2048, lng: 138.2529 },
+                    'South Korea': { lat: 35.9078, lng: 127.7669 },
+                    'Südkorea': { lat: 35.9078, lng: 127.7669 },
+                    'Australia': { lat: -25.2744, lng: 133.7751 },
+                    'Australien': { lat: -25.2744, lng: 133.7751 },
+                    'New Zealand': { lat: -40.9006, lng: 174.886 },
+                    'Neuseeland': { lat: -40.9006, lng: 174.886 },
+                    'India': { lat: 20.5937, lng: 78.9629 },
+                    'Indien': { lat: 20.5937, lng: 78.9629 },
+                    'Pakistan': { lat: 30.3753, lng: 69.3451 },
+                    'Bangladesh': { lat: 23.685, lng: 90.3563 },
+                    'Thailand': { lat: 15.87, lng: 100.9925 },
+                    'Vietnam': { lat: 14.0583, lng: 108.2772 },
+                    'Indonesia': { lat: -0.7893, lng: 113.9213 },
+                    'Indonesien': { lat: -0.7893, lng: 113.9213 },
+                    'Malaysia': { lat: 4.2105, lng: 101.9758 },
+                    'Philippines': { lat: 13.41, lng: 122.56 },
+                    'Philippinen': { lat: 13.41, lng: 122.56 },
+                    'South Africa': { lat: -30.5595, lng: 22.9375 },
+                    'Südafrika': { lat: -30.5595, lng: 22.9375 },
+                    'Nigeria': { lat: 9.082, lng: 8.6753 },
+                    'Kenya': { lat: -0.0236, lng: 37.9062 },
+                    'Kenia': { lat: -0.0236, lng: 37.9062 },
+                    'Egypt': { lat: 26.0975, lng: 31.2357 },
+                    'Ägypten': { lat: 26.0975, lng: 31.2357 },                    'Morocco': { lat: 31.7917, lng: -7.0926 },
+                    'Marokko': { lat: 31.7917, lng: -7.0926 }, // Morocco in German
+                    'Maroc': { lat: 31.7917, lng: -7.0926 }, // French name
+                    'Kingdom of Morocco': { lat: 31.7917, lng: -7.0926 }, // Official name
+                    'Königreich Marokko': { lat: 31.7917, lng: -7.0926 }, // Official German name
+                    'Algeria': { lat: 28.0339, lng: 1.6596 },
+                    'Algerien': { lat: 28.0339, lng: 1.6596 },
+                    'Tunisia': { lat: 33.8869, lng: 9.5375 },
+                    'Tunesien': { lat: 33.8869, lng: 9.5375 },
+                    'Iran': { lat: 32.4279, lng: 53.688 },
+                    'Saudi Arabia': { lat: 23.8859, lng: 45.0792 },
+                    'Saudi-Arabien': { lat: 23.8859, lng: 45.0792 },
+                    'Israel': { lat: 31.0461, lng: 34.8516 },
+                    'Jordan': { lat: 30.5852, lng: 36.2384 },
+                    'Jordanien': { lat: 30.5852, lng: 36.2384 },
+                    'Lebanon': { lat: 33.8547, lng: 35.8623 },
+                    'Libanon': { lat: 33.8547, lng: 35.8623 },
+                    'Syria': { lat: 34.8021, lng: 38.9968 },
+                    'Syrien': { lat: 34.8021, lng: 38.9968 },
+                    'Iraq': { lat: 33.2232, lng: 43.6793 },
+                    'Irak': { lat: 33.2232, lng: 43.6793 },
+                    // Additional countries to ensure all 180 are covered
+                    'Afghanistan': { lat: 33.9391, lng: 67.7100 },
+                    'Albania': { lat: 41.1533, lng: 20.1683 },
+                    'Angola': { lat: -11.2027, lng: 17.8739 },                    'Armenia': { lat: 40.0691, lng: 45.0382 },
+                    'Armenien': { lat: 40.0691, lng: 45.0382 }, // Armenia in German
+                    'Azerbaijan': { lat: 40.1431, lng: 47.5769 },
+                    'Aserbaidschan': { lat: 40.1431, lng: 47.5769 }, // Azerbaijan in German
+                    'Bahrain': { lat: 26.0667, lng: 50.5577 },
+                    'Benin': { lat: 9.3077, lng: 2.3158 },
+                    'Bolivia': { lat: -16.2902, lng: -63.5887 },
+                    'Bolivien': { lat: -16.2902, lng: -63.5887 }, // Bolivia in German
+                    'Bosnia and Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnia & Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnia-Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnien und Herzegowina': { lat: 43.9159, lng: 17.6791 }, // German
+                    'Bosnien-Herzegowina': { lat: 43.9159, lng: 17.6791 }, // German short
+                    'Bosnia': { lat: 43.9159, lng: 17.6791 }, // Short form
+                    'Bosnien': { lat: 43.9159, lng: 17.6791 }, // German short
+                    'Botswana': { lat: -22.3285, lng: 24.6849 },
+                    'Burkina Faso': { lat: 12.2383, lng: -1.5616 },
+                    'Cambodia': { lat: 12.5657, lng: 104.9910 },
+                    'Cameroon': { lat: 7.3697, lng: 12.3547 },
+                    'Central African Republic': { lat: 6.6111, lng: 20.9394 },
+                    'Chad': { lat: 15.4542, lng: 18.7322 },
+                    'Colombia': { lat: 4.5709, lng: -74.2973 },
+                    'Costa Rica': { lat: 9.7489, lng: -83.7534 },
+                    'Cuba': { lat: 21.5218, lng: -77.7812 },
+                    'Cyprus': { lat: 35.1264, lng: 33.4299 },
+                    'Dominican Republic': { lat: 18.7357, lng: -70.1627 },
+                    'Dominikanische Republik': { lat: 18.7357, lng: -70.1627 }, // German
+                    'Ecuador': { lat: -1.8312, lng: -78.1834 },
+                    'El Salvador': { lat: 13.7942, lng: -88.8965 },
+                    'Ethiopia': { lat: 9.1450, lng: 40.4897 },
+                    'Fiji': { lat: -16.5750, lng: 179.4144 },
+                    'Fidschi': { lat: -16.5750, lng: 179.4144 }, // Fiji in German
+                    'Dominikanische Republik': { lat: 18.7357, lng: -70.1627 }, // Dominican Republic in German                    'OECS': { lat: 14.0, lng: -61.0 }, // Organization of Eastern Caribbean States
+                    'Ostkaribik': { lat: 14.0, lng: -61.0 }, // Eastern Caribbean in German
+                    // Additional missing countries
+                    'Republic of Congo': { lat: -0.2280, lng: 15.8277 },
+                    'Republik Kongo': { lat: -0.2280, lng: 15.8277 }, // German
+                    'Congo Republic': { lat: -0.2280, lng: 15.8277 },
+                    'Congo-Brazzaville': { lat: -0.2280, lng: 15.8277 },
+                    'Comoros': { lat: -11.6455, lng: 43.3333 },
+                    'Komoren': { lat: -11.6455, lng: 43.3333 }, // German
+                    'Cyprus': { lat: 35.1264, lng: 33.4299 },
+                    'Zypern': { lat: 35.1264, lng: 33.4299 }, // German
+                    'Northern Cyprus': { lat: 35.2833, lng: 33.3833 },
+                    'Nordzypern': { lat: 35.2833, lng: 33.3833 }, // German
+                    'Turkish Republic of Northern Cyprus': { lat: 35.2833, lng: 33.3833 },
+                    'Qatar': { lat: 25.3548, lng: 51.1839 },
+                    'Katar': { lat: 25.3548, lng: 51.1839 }, // German
+                    'Albania': { lat: 41.1533, lng: 20.1683 },
+                    'Albanien': { lat: 41.1533, lng: 20.1683 }, // German
+                    'Kosovo': { lat: 42.6026, lng: 20.9030 },
+                    'Maldives': { lat: 3.2028, lng: 73.2207 },
+                    'Malediven': { lat: 3.2028, lng: 73.2207 }, // German
+                    'Madagascar': { lat: -18.7669, lng: 46.8691 },
+                    'Madagaskar': { lat: -18.7669, lng: 46.8691 }, // German
+                    'Colombia': { lat: 4.5709, lng: -74.2973 },
+                    'Kolumbien': { lat: 4.5709, lng: -74.2973 }, // German
+                    'Singapore': { lat: 1.3521, lng: 103.8198 },
+                    'Singapur': { lat: 1.3521, lng: 103.8198 }, // German
+                    'El Salvador': { lat: 13.7942, lng: -88.8965 },
+                    'Salvador': { lat: 13.7942, lng: -88.8965 },
+                    'Hong Kong': { lat: 22.3193, lng: 114.1694 },
+                    'Hongkong': { lat: 22.3193, lng: 114.1694 }, // German
+                    'Hong Kong SAR': { lat: 22.3193, lng: 114.1694 },
+                    'Bangladesh': { lat: 23.685, lng: 90.3563 },
+                    'Bangladesch': { lat: 23.685, lng: 90.3563 }, // German
+                    'Yemen': { lat: 15.5527, lng: 48.5164 },
+                    'Jemen': { lat: 15.5527, lng: 48.5164 }, // German
+                    'Cambodia': { lat: 12.5657, lng: 104.9910 },
+                    'Kambodscha': { lat: 12.5657, lng: 104.9910 }, // German
+                    'Palestine': { lat: 31.9522, lng: 35.2332 },
+                    'Palästina': { lat: 31.9522, lng: 35.2332 }, // German
+                    'Palestinian Territories': { lat: 31.9522, lng: 35.2332 },
+                    'Palästinensische Gebiete': { lat: 31.9522, lng: 35.2332 }, // German
+                    'State of Palestine': { lat: 31.9522, lng: 35.2332 },                    'Cuba': { lat: 21.5218, lng: -77.7812 },
+                    'Kuba': { lat: 21.5218, lng: -77.7812 }, // German
+                    'Gabon': { lat: -0.8037, lng: 11.6094 },
+                    'Gambia': { lat: 13.4432, lng: -15.3101 },
+                    'Georgia': { lat: 42.3154, lng: 43.3569 },
+                    'Ghana': { lat: 7.9465, lng: -1.0232 },
+                    'Guatemala': { lat: 15.7835, lng: -90.2308 },
+                    'Guinea': { lat: 9.9456, lng: -9.6966 },
+                    'Haiti': { lat: 18.9712, lng: -72.2852 },
+                    'Honduras': { lat: 15.2000, lng: -86.2419 },
+                    'Iceland': { lat: 64.9631, lng: -19.0208 },
+                    'Island': { lat: 64.9631, lng: -19.0208 }, // Iceland in German
+                    'Jamaica': { lat: 18.1096, lng: -77.2975 },
+                    'Jamaika': { lat: 18.1096, lng: -77.2975 }, // Jamaica in German
+                    'Taiwan': { lat: 23.6978, lng: 120.9605 },
+                    'Taiwan (Province of China)': { lat: 23.6978, lng: 120.9605 }, // UN designation
+                    'Chinese Taipei': { lat: 23.6978, lng: 120.9605 }, // Olympic designation
+                    'Republic of China': { lat: 23.6978, lng: 120.9605 }, // Official name
+                    'Republik China': { lat: 23.6978, lng: 120.9605 }, // German
+                    'Kazakhstan': { lat: 48.0196, lng: 66.9237 },
+                    'Kasachstan': { lat: 48.0196, lng: 66.9237 }, // Kazakhstan in German
+                    'Kazakstan': { lat: 48.0196, lng: 66.9237 }, // Alternative spelling
+                    'Kuwait': { lat: 29.3117, lng: 47.4818 },
+                    'Kyrgyzstan': { lat: 41.2044, lng: 74.7661 },
+                    'Kirgisistan': { lat: 41.2044, lng: 74.7661 }, // Kyrgyzstan in German
+                    'Kirgistan': { lat: 41.2044, lng: 74.7661 }, // Alternative German spelling
+                    'Laos': { lat: 19.8563, lng: 102.4955 },
+                    'Libya': { lat: 26.3351, lng: 17.2283 },
+                    'Luxembourg': { lat: 49.8153, lng: 6.1296 },
+                    'Luxemburg': { lat: 49.8153, lng: 6.1296 }, // Luxembourg in German
+                    'Madagascar': { lat: -18.7669, lng: 46.8691 },
+                    'Mali': { lat: 17.5707, lng: -3.9962 },
+                    'Malta': { lat: 35.9375, lng: 14.3754 },
+                    'Mauritania': { lat: 21.0079, lng: -10.9408 },
+                    'Mongolia': { lat: 46.8625, lng: 103.8467 },
+                    'Montenegro': { lat: 42.7087, lng: 19.3744 },
+                    'Myanmar': { lat: 21.9162, lng: 95.9560 },
+                    'Namibia': { lat: -22.9576, lng: 18.4904 },
+                    'Nepal': { lat: 28.3949, lng: 84.1240 },
+                    'Nicaragua': { lat: 12.2651, lng: -85.2072 },
+                    'Niger': { lat: 17.6078, lng: 8.0817 },
+                    'North Korea': { lat: 40.3399, lng: 127.5101 },
+                    'North Macedonia': { lat: 41.6086, lng: 21.7453 },
+                    'Oman': { lat: 21.4735, lng: 55.9754 },
+                    'Panama': { lat: 8.5380, lng: -80.7821 },
+                    'Papua New Guinea': { lat: -6.3140, lng: 143.9555 },
+                    'Paraguay': { lat: -23.4425, lng: -58.4438 },
+                    'Peru': { lat: -9.1900, lng: -75.0152 },
+                    'Qatar': { lat: 25.3548, lng: 51.1839 },
+                    'Rwanda': { lat: -1.9403, lng: 29.8739 },
+                    'Senegal': { lat: 14.4974, lng: -14.4524 },
+                    'Singapore': { lat: 1.3521, lng: 103.8198 },
+                    'Somalia': { lat: 5.1521, lng: 46.1996 },
+                    'Sri Lanka': { lat: 7.8731, lng: 80.7718 },
+                    'Sudan': { lat: 12.8628, lng: 30.2176 },
+                    'Suriname': { lat: 3.9193, lng: -56.0278 },
+                    'Tajikistan': { lat: 38.8610, lng: 71.2761 },
+                    'Tadschikistan': { lat: 38.8610, lng: 71.2761 }, // Tajikistan in German
+                    'Tanzania': { lat: -6.3690, lng: 34.8888 },
+                    'Togo': { lat: 8.6195, lng: 0.8248 },
+                    'Trinidad and Tobago': { lat: 10.6918, lng: -61.2225 },
+                    'Turkmenistan': { lat: 38.9697, lng: 59.5563 },
+                    'Uganda': { lat: 1.3733, lng: 32.2903 },
+                    'United Arab Emirates': { lat: 23.4241, lng: 53.8478 },
+                    'Uruguay': { lat: -32.5228, lng: -55.7658 },
+                    'Uzbekistan': { lat: 41.3775, lng: 64.5853 },
+                    'Venezuela': { lat: 6.4238, lng: -66.5897 },                    'Yemen': { lat: 15.5527, lng: 48.5164 },
+                    'Zambia': { lat: -13.1339, lng: 27.8493 },
+                    'Zimbabwe': { lat: -19.0154, lng: 29.1549 },
+                    // More comprehensive coverage for potential Excel variations
+                    'Bahamas': { lat: 25.0343, lng: -77.3963 },
+                    'Barbados': { lat: 13.1939, lng: -59.5432 },
+                    'Belize': { lat: 17.1899, lng: -88.4976 },
+                    'Bhutan': { lat: 27.5142, lng: 90.4336 },
+                    'Brunei': { lat: 4.5353, lng: 114.7277 },
+                    'Burundi': { lat: -3.3731, lng: 29.9189 },
+                    'Cape Verde': { lat: 16.5388, lng: -24.0132 },
+                    'Comoros': { lat: -11.6455, lng: 43.3333 },
+                    'Congo': { lat: -0.2280, lng: 15.8277 },
+                    'Democratic Republic of the Congo': { lat: -4.0383, lng: 21.7587 },
+                    'Djibouti': { lat: 11.8251, lng: 42.5903 },
+                    'Dominica': { lat: 15.3000, lng: -61.3833 },
+                    'East Timor': { lat: -8.8742, lng: 125.7275 },
+                    'Equatorial Guinea': { lat: 1.6508, lng: 10.2679 },
+                    'Eritrea': { lat: 15.1794, lng: 39.7823 },
+                    'Eswatini': { lat: -26.5225, lng: 31.4659 },
+                    'Grenada': { lat: 12.1165, lng: -61.6790 },
+                    'Guinea-Bissau': { lat: 11.8037, lng: -15.1804 },
+                    'Guyana': { lat: 4.8604, lng: -58.9302 },
+                    'Jordan': { lat: 30.5852, lng: 36.2384 },
+                    'Kiribati': { lat: -3.3704, lng: -168.7340 },
+                    'Lesotho': { lat: -29.6100, lng: 28.2336 },
+                    'Liberia': { lat: 6.4281, lng: -9.4295 },
+                    'Liechtenstein': { lat: 47.1660, lng: 9.5554 },
+                    'Maldives': { lat: 3.2028, lng: 73.2207 },
+                    'Marshall Islands': { lat: 7.1315, lng: 171.1845 },
+                    'Mauritius': { lat: -20.3484, lng: 57.5522 },
+                    'Micronesia': { lat: 7.4256, lng: 150.5508 },
+                    'Monaco': { lat: 43.7384, lng: 7.4246 },
+                    'Andorra': { lat: 42.5063, lng: 1.5218 },
+                    'San Marino': { lat: 43.9424, lng: 12.4578 },
+                    'Liechtenstein': { lat: 47.1660, lng: 9.5554 },
+                    'Vatican City': { lat: 41.9029, lng: 12.4534 },
+                    'Vatikan': { lat: 41.9029, lng: 12.4534 }, // Vatican in German
+                    'Vatikanstadt': { lat: 41.9029, lng: 12.4534 }, // Vatican City in German
+                    'Nauru': { lat: -0.5228, lng: 166.9315 },
+                    'Palau': { lat: 7.5149, lng: 134.5825 },
+                    'Saint Kitts and Nevis': { lat: 17.3578, lng: -62.7830 },
+                    'Saint Lucia': { lat: 13.9094, lng: -60.9789 },
+                    'Saint Vincent and the Grenadines': { lat: 12.9843, lng: -61.2872 },
+                    'Samoa': { lat: -13.7590, lng: -172.1046 },
+                    'San Marino': { lat: 43.9424, lng: 12.4578 },
+                    'Sao Tome and Principe': { lat: 0.1864, lng: 6.6131 },
+                    'Seychelles': { lat: -4.6796, lng: 55.4920 },
+                    'Seychellen': { lat: -4.6796, lng: 55.4920 }, // Seychelles in German
+                    'Sierra Leone': { lat: 8.4606, lng: -11.7799 },
+                    'Solomon Islands': { lat: -9.6457, lng: 160.1562 },
+                    'South Sudan': { lat: 6.8770, lng: 31.3070 },
+                    'Tonga': { lat: -21.1789, lng: -175.1982 },
+                    'Tuvalu': { lat: -7.1095, lng: 177.6493 },
+                    'Vanuatu': { lat: -15.3767, lng: 166.9592 },
+                    'Vatican City': { lat: 41.9029, lng: 12.4534 },
+                    // German variations
+                    'Vereinigte Staaten': { lat: 37.0902, lng: -95.7129 },
+                    'Vereinigte Arabische Emirate': { lat: 23.4241, lng: 53.8478 },
+                    'Südafrika': { lat: -30.5595, lng: 22.9375 },
+                    'Nordkorea': { lat: 40.3399, lng: 127.5101 },
+                    'Elfenbeinküste': { lat: 7.5400, lng: -5.5471 },
+                    'Côte d\'Ivoire': { lat: 7.5400, lng: -5.5471 },
+                    'Ivory Coast': { lat: 7.5400, lng: -5.5471 },
+                    // Additional English/German variations  
+                    'North Macedonia': { lat: 41.6086, lng: 21.7453 },
+                    'Nordmazedonien': { lat: 41.6086, lng: 21.7453 },
+                    'Bosnia-Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnien-Herzegowina': { lat: 43.9159, lng: 17.6791 },
+                    'Central African Rep.': { lat: 6.6111, lng: 20.9394 },
+                    'Zentralafrikanische Republik': { lat: 6.6111, lng: 20.9394 },                    'Democratic Rep. of Congo': { lat: -4.0383, lng: 21.7587 },
+                    'Demokratische Republik Kongo': { lat: -4.0383, lng: 21.7587 },
+                    'Kongo': { lat: -0.2280, lng: 15.8277 },
+                    'Republic of the Congo': { lat: -0.2280, lng: 15.8277 },
+                    // Additional missing countries with German variations
+                    'Libyen': { lat: 26.3351, lng: 17.2283 }, // Libya in German
+                    'Mongolei': { lat: 46.8625, lng: 103.8467 }, // Mongolia in German
+                    'Malawi': { lat: -13.2543, lng: 34.3015 }, // Missing African country
+                    'Mosambik': { lat: -18.6657, lng: 35.5296 }, // Mozambique in German
+                    'Mozambique': { lat: -18.6657, lng: 35.5296 },
+                    'Mauretanien': { lat: 21.0079, lng: -10.9408 }, // Mauritania in German
+                    'Mauritania': { lat: 21.0079, lng: -10.9408 },
+                    'Cabo Verde': { lat: 16.5388, lng: -24.0132 },
+                    'Cape Verde': { lat: 16.5388, lng: -24.0132 },
+                    'Kap Verde': { lat: 16.5388, lng: -24.0132 },
+                    'São Tomé and Príncipe': { lat: 0.1864, lng: 6.6131 },
+                    'Sao Tome and Principe': { lat: 0.1864, lng: 6.6131 },
+                    'São Tomé und Príncipe': { lat: 0.1864, lng: 6.6131 },
+                    'Timor-Leste': { lat: -8.8742, lng: 125.7275 },
+                    'East Timor': { lat: -8.8742, lng: 125.7275 },
+                    'Osttimor': { lat: -8.8742, lng: 125.7275 },
+                    'Macedonia': { lat: 41.6086, lng: 21.7453 },
+                    'FYROM': { lat: 41.6086, lng: 21.7453 },
+                    'Former Yugoslav Republic of Macedonia': { lat: 41.6086, lng: 21.7453 },
+                    'Swaziland': { lat: -26.5225, lng: 31.4659 }, // Old name for Eswatini
+                    'Burma': { lat: 21.9162, lng: 95.9560 }, // Old name for Myanmar
+                    'Myanmar (Burma)': { lat: 21.9162, lng: 95.9560 },
+                    'DR Congo': { lat: -4.0383, lng: 21.7587 },
+                    'DRC': { lat: -4.0383, lng: 21.7587 },
+                    'Congo (Kinshasa)': { lat: -4.0383, lng: 21.7587 },
+                    'Congo (Brazzaville)': { lat: -4.2634, lng: 15.2429 },
+                    'Czech Republic': { lat: 49.8175, lng: 15.4730 },
+                    'Czechia': { lat: 49.8175, lng: 15.4730 },
+                    'Tschechien': { lat: 49.8175, lng: 15.4730 },
+                    'Slovakia': { lat: 48.6690, lng: 19.6990 },
+                    'Slovak Republic': { lat: 48.6690, lng: 19.6990 },
+                    'Slowakei': { lat: 48.6690, lng: 19.6990 },
+                    'United States of America': { lat: 37.0902, lng: -95.7129 },
+                    'USA': { lat: 37.0902, lng: -95.7129 },
+                    'US': { lat: 37.0902, lng: -95.7129 },
+                    'United Kingdom': { lat: 55.3781, lng: -3.4360 },
+                    'UK': { lat: 55.3781, lng: -3.4360 },
+                    'Britain': { lat: 55.3781, lng: -3.4360 },
+                    'Great Britain': { lat: 55.3781, lng: -3.4360 },
+                    'Kamerun': { lat: 7.3697, lng: 12.3547 }, // Cameroon in German
+                    'Cameroon': { lat: 7.3697, lng: 12.3547 },
+                    'Tschad': { lat: 15.4542, lng: 18.7322 }, // Chad in German
+                    'Chad': { lat: 15.4542, lng: 18.7322 },
+                    'Gabun': { lat: -0.8037, lng: 11.6094 }, // Gabon in German
+                    'Gabon': { lat: -0.8037, lng: 11.6094 },
+                    'Äquatorialguinea': { lat: 1.6508, lng: 10.2679 }, // Equatorial Guinea in German
+                    'Equatorial Guinea': { lat: 1.6508, lng: 10.2679 },
+                    'Zentralafrikanische Republik': { lat: 6.6111, lng: 20.9394 }, // Central African Republic in German
+                    'Central African Republic': { lat: 6.6111, lng: 20.9394 },
+                    'Elfenbeinküste': { lat: 7.5400, lng: -5.5471 }, // Ivory Coast in German
+                    'Côte d\'Ivoire': { lat: 7.5400, lng: -5.5471 },
+                    'Ivory Coast': { lat: 7.5400, lng: -5.5471 },
+                    'Burkina Faso': { lat: 12.2383, lng: -1.5616 },
+                    'Ghana': { lat: 7.9465, lng: -1.0232 },
+                    'Guinea': { lat: 9.9456, lng: -9.6966 },
+                    'Guinea-Bissau': { lat: 11.8037, lng: -15.1804 },
+                    'Sierra Leone': { lat: 8.4606, lng: -11.7799 },
+                    'Liberia': { lat: 6.4281, lng: -9.4295 },
+                    'Benin': { lat: 9.3077, lng: 2.3158 },
+                    'Togo': { lat: 8.6195, lng: 0.8248 },
+                    'Niger': { lat: 17.6078, lng: 8.0817 },
+                    'Mali': { lat: 17.5707, lng: -3.9962 },
+                    'Senegal': { lat: 14.4974, lng: -14.4524 },
+                    'Gambia': { lat: 13.4432, lng: -15.3101 },
+                    'Südsudan': { lat: 6.8770, lng: 31.3070 }, // South Sudan in German
+                    'South Sudan': { lat: 6.8770, lng: 31.3070 },
+                    'Äthiopien': { lat: 9.1450, lng: 40.4897 }, // Ethiopia in German
+                    'Ethiopia': { lat: 9.1450, lng: 40.4897 },
+                    'Eritrea': { lat: 15.1794, lng: 39.7823 },
+                    'Dschibuti': { lat: 11.8251, lng: 42.5903 }, // Djibouti in German
+                    'Djibouti': { lat: 11.8251, lng: 42.5903 },
+                    'Somalia': { lat: 5.1521, lng: 46.1996 },
+                    'Kenia': { lat: -0.0236, lng: 37.9062 }, // Kenya in German
+                    'Kenya': { lat: -0.0236, lng: 37.9062 },
+                    'Uganda': { lat: 1.3733, lng: 32.2903 },
+                    'Ruanda': { lat: -1.9403, lng: 29.8739 }, // Rwanda in German
+                    'Rwanda': { lat: -1.9403, lng: 29.8739 },
+                    'Burundi': { lat: -3.3731, lng: 29.9189 },
+                    'Tansania': { lat: -6.3690, lng: 34.8888 }, // Tanzania in German
+                    'Tanzania': { lat: -6.3690, lng: 34.8888 },
+                    'Sambia': { lat: -13.1339, lng: 27.8493 }, // Zambia in German
+                    'Zambia': { lat: -13.1339, lng: 27.8493 },
+                    'Simbabwe': { lat: -19.0154, lng: 29.1549 }, // Zimbabwe in German
+                    'Zimbabwe': { lat: -19.0154, lng: 29.1549 },
+                    'Botswana': { lat: -22.3285, lng: 24.6849 },
+                    'Namibia': { lat: -22.9576, lng: 18.4904 },
+                    'Angola': { lat: -11.2027, lng: 17.8739 },
+                    'Lesotho': { lat: -29.6100, lng: 28.2336 },
+                    'Eswatini': { lat: -26.5225, lng: 31.4659 },
+                    'Swasiland': { lat: -26.5225, lng: 31.4659 }, // Former name                    'Madagaskar': { lat: -18.7669, lng: 46.8691 }, // Madagascar in German
+                    'Madagascar': { lat: -18.7669, lng: 46.8691 },
+                    // Additional country variations for international rankings
+                    'Cabo Verde': { lat: 16.5388, lng: -24.0132 },
+                    'Cape Verde': { lat: 16.5388, lng: -24.0132 },
+                    'Kap Verde': { lat: 16.5388, lng: -24.0132 },
+                    'São Tomé and Príncipe': { lat: 0.1864, lng: 6.6131 },
+                    'Sao Tome and Principe': { lat: 0.1864, lng: 6.6131 },
+                    'São Tomé und Príncipe': { lat: 0.1864, lng: 6.6131 },
+                    'Timor-Leste': { lat: -8.8742, lng: 125.7275 },
+                    'East Timor': { lat: -8.8742, lng: 125.7275 },
+                    'Osttimor': { lat: -8.8742, lng: 125.7275 },
+                    'Macedonia': { lat: 41.6086, lng: 21.7453 },
+                    'FYROM': { lat: 41.6086, lng: 21.7453 },
+                    'Former Yugoslav Republic of Macedonia': { lat: 41.6086, lng: 21.7453 },
+                    'Swaziland': { lat: -26.5225, lng: 31.4659 }, // Old name for Eswatini
+                    'Burma': { lat: 21.9162, lng: 95.9560 }, // Old name for Myanmar
+                    'Myanmar (Burma)': { lat: 21.9162, lng: 95.9560 },
+                    'DR Congo': { lat: -4.0383, lng: 21.7587 },
+                    'DRC': { lat: -4.0383, lng: 21.7587 },
+                    'Congo (Kinshasa)': { lat: -4.0383, lng: 21.7587 },
+                    'Congo (Brazzaville)': { lat: -4.2634, lng: 15.2429 },
+                    'Czech Republic': { lat: 49.8175, lng: 15.4730 },
+                    'Czechia': { lat: 49.8175, lng: 15.4730 },
+                    'Tschechien': { lat: 49.8175, lng: 15.4730 },
+                    'Slovakia': { lat: 48.6690, lng: 19.6990 },
+                    'Slovak Republic': { lat: 48.6690, lng: 19.6990 },
+                    'Slowakei': { lat: 48.6690, lng: 19.6990 },
+                    'United States of America': { lat: 37.0902, lng: -95.7129 },
+                    'USA': { lat: 37.0902, lng: -95.7129 },
+                    'US': { lat: 37.0902, lng: -95.7129 },
+                    'United Kingdom': { lat: 55.3781, lng: -3.4360 },
+                    'UK': { lat: 55.3781, lng: -3.4360 },
+                    'Britain': { lat: 55.3781, lng: -3.4360 },
+                    'Great Britain': { lat: 55.3781, lng: -3.4360 },                    'Mauritania': { lat: 21.0079, lng: -10.9408 },
+                    'Kasachstan': { lat: 48.0196, lng: 66.9237 }, // Kazakhstan in German
+                    'Kazakhstan': { lat: 48.0196, lng: 66.9237 },
+                    'Kazakstan': { lat: 48.0196, lng: 66.9237 }, // Alternative spelling                    'Bolivien': { lat: -16.2902, lng: -63.5887 }, // Bolivia in German
+                    'Bolivia': { lat: -16.2902, lng: -63.5887 },
+                    // Additional European countries and microstates
+                    'Island': { lat: 64.9631, lng: -19.0208 }, // Iceland in German
+                    'Iceland': { lat: 64.9631, lng: -19.0208 },
+                    'Luxemburg': { lat: 49.8153, lng: 6.1296 }, // Luxembourg in German
+                    'Luxembourg': { lat: 49.8153, lng: 6.1296 },
+                    'Andorra': { lat: 42.5063, lng: 1.5218 },
+                    'San Marino': { lat: 43.9424, lng: 12.4578 },
+                    'Monaco': { lat: 43.7384, lng: 7.4246 },
+                    'Liechtenstein': { lat: 47.1660, lng: 9.5554 },
+                    'Vatikan': { lat: 41.9029, lng: 12.4534 }, // Vatican in German
+                    'Vatican City': { lat: 41.9029, lng: 12.4534 },
+                    'Vatikanstadt': { lat: 41.9029, lng: 12.4534 }, // Vatican City in German                    'Holy See': { lat: 41.9029, lng: 12.4534 }, // Alternative name for Vatican
+                    'Heiliger Stuhl': { lat: 41.9029, lng: 12.4534 }, // Holy See in German
+                    // Additional potentially missing countries
+                    'Antigua and Barbuda': { lat: 17.0608, lng: -61.7964 },
+                    'Antigua und Barbuda': { lat: 17.0608, lng: -61.7964 },
+                    'Saint Kitts and Nevis': { lat: 17.3578, lng: -62.7830 },
+                    'St. Kitts and Nevis': { lat: 17.3578, lng: -62.7830 },
+                    'Saint Lucia': { lat: 13.9094, lng: -60.9789 },
+                    'St. Lucia': { lat: 13.9094, lng: -60.9789 },
+                    'Saint Vincent and the Grenadines': { lat: 12.9843, lng: -61.2872 },
+                    'St. Vincent and the Grenadines': { lat: 12.9843, lng: -61.2872 },
+                    'Trinidad and Tobago': { lat: 10.6918, lng: -61.2225 },
+                    'Trinidad und Tobago': { lat: 10.6918, lng: -61.2225 },
+                    'Federated States of Micronesia': { lat: 7.4256, lng: 150.5508 },
+                    'Micronesia (Federated States of)': { lat: 7.4256, lng: 150.5508 },
+                    'Marshall Islands': { lat: 7.1315, lng: 171.1845 },
+                    'Marshallinseln': { lat: 7.1315, lng: 171.1845 },
+                    'Papua New Guinea': { lat: -6.3140, lng: 143.9555 },
+                    'Papua-Neuguinea': { lat: -6.3140, lng: 143.9555 },
+                    'Solomon Islands': { lat: -9.6457, lng: 160.1562 },
+                    'Salomonen': { lat: -9.6457, lng: 160.1562 },
+                    'Kiribati': { lat: -3.3704, lng: -168.7340 },
+                    'Tuvalu': { lat: -7.1095, lng: 177.6493 },
+                    'Nauru': { lat: -0.5228, lng: 166.9315 },                    'Palau': { lat: 7.5149, lng: 134.5825 },
+                    // Bosnia and Herzegovina variants
+                    'Bosnia and Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnia & Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnia-Herzegovina': { lat: 43.9159, lng: 17.6791 },
+                    'Bosnien und Herzegowina': { lat: 43.9159, lng: 17.6791 }, // German
+                    'Bosnien-Herzegowina': { lat: 43.9159, lng: 17.6791 }, // German short
+                    'Bosnia': { lat: 43.9159, lng: 17.6791 }, // Short form                    'Bosnien': { lat: 43.9159, lng: 17.6791 }, // German short
+                    // Central Asian and Caucasus countries
+                    'Armenien': { lat: 40.0691, lng: 45.0382 }, // Armenia in German
+                    'Armenia': { lat: 40.0691, lng: 45.0382 },
+                    'Aserbaidschan': { lat: 40.1431, lng: 47.5769 }, // Azerbaijan in German
+                    'Azerbaijan': { lat: 40.1431, lng: 47.5769 },
+                    'Kirgisistan': { lat: 41.2044, lng: 74.7661 }, // Kyrgyzstan in German
+                    'Kirgistan': { lat: 41.2044, lng: 74.7661 }, // Alternative German spelling
+                    'Kyrgyzstan': { lat: 41.2044, lng: 74.7661 },
+                    'Tadschikistan': { lat: 38.8610, lng: 71.2761 }, // Tajikistan in German
+                    'Tajikistan': { lat: 38.8610, lng: 71.2761 },
+                    'Usbekistan': { lat: 41.3775, lng: 64.5853 }, // Uzbekistan in German
+                    'Uzbekistan': { lat: 41.3775, lng: 64.5853 },
+                    'Turkmenistan': { lat: 38.9697, lng: 59.5563 },                    'Georgien': { lat: 42.3154, lng: 43.3569 }, // Georgia in German
+                    'Georgia': { lat: 42.3154, lng: 43.3569 },                    'Marokko': { lat: 31.7917, lng: -7.0926 }, // Morocco in German
+                    'Morocco': { lat: 31.7917, lng: -7.0926 },
+                    'Maroc': { lat: 31.7917, lng: -7.0926 }, // French name
+                    'Kingdom of Morocco': { lat: 31.7917, lng: -7.0926 }, // Official name                    'Königreich Marokko': { lat: 31.7917, lng: -7.0926 }, // Official German name
+                    'Jamaika': { lat: 18.1096, lng: -77.2975 }, // Jamaica in German
+                    'Jamaica': { lat: 18.1096, lng: -77.2975 },
+                    'Taiwan': { lat: 23.6978, lng: 120.9605 },
+                    'Taiwan (Province of China)': { lat: 23.6978, lng: 120.9605 }, // UN designation
+                    'Chinese Taipei': { lat: 23.6978, lng: 120.9605 }, // Olympic designation
+                    'Republic of China': { lat: 23.6978, lng: 120.9605 }, // Official name                    'Republik China': { lat: 23.6978, lng: 120.9605 }, // German
+                    // OECS and additional Caribbean states
+                    'OECS': { lat: 14.0, lng: -61.0 }, // Organization of Eastern Caribbean States
+                    'Organization of Eastern Caribbean States': { lat: 14.0, lng: -61.0 },
+                    'Eastern Caribbean': { lat: 14.0, lng: -61.0 },
+                    'Ostkaribik': { lat: 14.0, lng: -61.0 }, // German
+                    'Antigua and Barbuda': { lat: 17.0608, lng: -61.7964 },
+                    'Antigua und Barbuda': { lat: 17.0608, lng: -61.7964 }, // German
+                    'Saint Lucia': { lat: 13.9094, lng: -60.9789 },
+                    'St. Lucia': { lat: 13.9094, lng: -60.9789 },
+                    'Saint Vincent and the Grenadines': { lat: 12.9843, lng: -61.2872 },
+                    'St. Vincent and the Grenadines': { lat: 12.9843, lng: -61.2872 },
+                    'St. Vincent und die Grenadinen': { lat: 12.9843, lng: -61.2872 }, // German
+                    'Grenada': { lat: 12.1165, lng: -61.6790 },
+                    'Dominica': { lat: 15.3000, lng: -61.3833 },
+                    'Saint Kitts and Nevis': { lat: 17.3578, lng: -62.7830 },
+                    'St. Kitts and Nevis': { lat: 17.3578, lng: -62.7830 },                    'St. Kitts und Nevis': { lat: 17.3578, lng: -62.7830 }, // German
+                    // Additional missing countries - second set
+                    'Republik Kongo': { lat: -0.2280, lng: 15.8277 }, // Republic of Congo in German
+                    'Republic of Congo': { lat: -0.2280, lng: 15.8277 },
+                    'Congo Republic': { lat: -0.2280, lng: 15.8277 },
+                    'Congo-Brazzaville': { lat: -0.2280, lng: 15.8277 },
+                    'Komoren': { lat: -11.6455, lng: 43.3333 }, // Comoros in German
+                    'Comoros': { lat: -11.6455, lng: 43.3333 },
+                    'Zypern': { lat: 35.1264, lng: 33.4299 }, // Cyprus in German
+                    'Cyprus': { lat: 35.1264, lng: 33.4299 },
+                    'Nordzypern': { lat: 35.2833, lng: 33.3833 }, // Northern Cyprus in German
+                    'Northern Cyprus': { lat: 35.2833, lng: 33.3833 },
+                    'Turkish Republic of Northern Cyprus': { lat: 35.2833, lng: 33.3833 },
+                    'Katar': { lat: 25.3548, lng: 51.1839 }, // Qatar in German
+                    'Qatar': { lat: 25.3548, lng: 51.1839 },
+                    'Albanien': { lat: 41.1533, lng: 20.1683 }, // Albania in German
+                    'Albania': { lat: 41.1533, lng: 20.1683 },
+                    'Kosovo': { lat: 42.6026, lng: 20.9030 },
+                    'Malediven': { lat: 3.2028, lng: 73.2207 }, // Maldives in German
+                    'Maldives': { lat: 3.2028, lng: 73.2207 },
+                    'Kolumbien': { lat: 4.5709, lng: -74.2973 }, // Colombia in German
+                    'Colombia': { lat: 4.5709, lng: -74.2973 },
+                    'Singapur': { lat: 1.3521, lng: 103.8198 }, // Singapore in German
+                    'Singapore': { lat: 1.3521, lng: 103.8198 },
+                    'Salvador': { lat: 13.7942, lng: -88.8965 },
+                    'El Salvador': { lat: 13.7942, lng: -88.8965 },
+                    'Hongkong': { lat: 22.3193, lng: 114.1694 }, // Hong Kong in German
+                    'Hong Kong': { lat: 22.3193, lng: 114.1694 },
+                    'Hong Kong SAR': { lat: 22.3193, lng: 114.1694 },
+                    'Bangladesch': { lat: 23.685, lng: 90.3563 }, // Bangladesh in German
+                    'Bangladesh': { lat: 23.685, lng: 90.3563 },
+                    'Jemen': { lat: 15.5527, lng: 48.5164 }, // Yemen in German
+                    'Yemen': { lat: 15.5527, lng: 48.5164 },
+                    'Kambodscha': { lat: 12.5657, lng: 104.9910 }, // Cambodia in German
+                    'Cambodia': { lat: 12.5657, lng: 104.9910 },
+                    'Palästina': { lat: 31.9522, lng: 35.2332 }, // Palestine in German
+                    'Palestine': { lat: 31.9522, lng: 35.2332 },
+                    'Palestinian Territories': { lat: 31.9522, lng: 35.2332 },
+                    'Palästinensische Gebiete': { lat: 31.9522, lng: 35.2332 }, // German
+                    'State of Palestine': { lat: 31.9522, lng: 35.2332 },
+                    'Kuba': { lat: 21.5218, lng: -77.7812 }, // Cuba in German
+                    'Cuba': { lat: 21.5218, lng: -77.7812 }
+                };
+                  // Convert Excel data to our format
+                countries = jsonData.map((row, index) => {
+                    // Debug: Log first few rows to see what data we have
+                    if (index < 3) {
+                        console.log('🔍 Raw row data:', row);
+                    }
+                      // Try different possible column names for score
+                    const scoreValue = row['Punktzahl 2025'] ||  // Correct column name from Excel
+                        row['Punktezahl 2025'] || 
+                        row['Score 2025'] || 
+                        row['Points 2025'] || 
+                        row['Punkte'] ||
+                        row['Score'] ||
+                        row['Wert'] ||
+                        row['Lage 2025'] ||  // RSF uses "Lage" for score
+                        row['Situation 2025'] ||
+                        row['Index'] ||
+                        row['Value'] ||
+                        0;
+                    
+                    // Handle both numeric and string values
+                    const score = typeof scoreValue === 'number' ? scoreValue : parseFloat(scoreValue) || 0;
+                    
+                    // Try different possible column names for rank
+                    const rank = parseInt(
+                        row['Rang 2025'] || 
+                        row['Rank 2025'] || 
+                        row['Position 2025'] || 
+                        row['Rang'] ||
+                        row['Rank'] ||
+                        row['Position'] ||
+                        (index + 1) // fallback to sequential numbering
+                    );
+                    
+                    // Try different possible column names for country name
+                    const countryName = (
+                        row['Land'] || 
+                        row['Country'] || 
+                        row['Name'] || 
+                        row['Staat'] ||
+                        row['Land/Territorium'] ||
+                        row['Territory'] ||
+                        ''
+                    ).toString().trim();
+                    
+                    // Get coordinates from Excel or fallback
+                    let lat = parseFloat(row['Latitude'] || row['Lat'] || row['Breitengrad'] || 0);
+                    let lng = parseFloat(row['Longitude'] || row['Lng'] || row['Long'] || row['Längengrad'] || 0);
+                    
+                    // If no coordinates in Excel, use fallback
+                    if ((!lat || !lng) && countryCoordinates[countryName]) {
+                        lat = countryCoordinates[countryName].lat;
+                        lng = countryCoordinates[countryName].lng;
+                    }
+                    
+                    // Debug: Log conversion for first few countries
+                    if (index < 3) {
+                        console.log(`🔍 Country ${index + 1}: ${countryName}, Score: ${score}, Rank: ${rank}`);
+                    }
+                    
+                    // Determine color based on rank OR score if rank is not available
+                    let color = '#8b0000'; // Default dark red
+                    const rankToUse = rank || (index + 1);
+                    if (rankToUse <= 20) color = '#27ae60'; // Green
+                    else if (rankToUse <= 40) color = '#2ecc71'; // Light green
+                    else if (rankToUse <= 60) color = '#f39c12'; // Orange
+                    else if (rankToUse <= 80) color = '#e67e22'; // Dark orange
+                    else if (rankToUse <= 100) color = '#c0392b'; // Red
+                      return {
+                        name: countryName,
+                        lat: lat,
+                        lng: lng,
+                        score: score || 0, // Ensure score is at least 0
+                        rank: rank || (index + 1), // Use index as fallback rank
+                        color: color
+                    };
+                }).filter(country => country.name); // Only require name
+                  console.log('✅ Loaded', countries.length, 'countries from Excel file');
+                console.log('🌍 Sample countries:', countries.slice(0, 5));
+                console.log('🗺️ Countries with coordinates:', countries.filter(c => c.lat && c.lng).length);
+                console.log('📍 Countries without coordinates:', countries.filter(c => !c.lat || !c.lng).length);
+                console.log('📊 Countries with scores > 0:', countries.filter(c => c.score > 0).length);
+                console.log('🏆 Countries with valid ranks:', countries.filter(c => c.rank > 0).length);
+                
+                // List all countries without coordinates
+                const countriesWithoutCoords = countries.filter(c => !c.lat || !c.lng || c.lat === 0 || c.lng === 0);
+                if (countriesWithoutCoords.length > 0) {
+                    console.log('⚠️ COUNTRIES WITHOUT COORDINATES:');
+                    countriesWithoutCoords.forEach(c => console.log(`   - ${c.name} (Rank: ${c.rank}, Score: ${c.score})`));
+                }
+                
+                // List all country names from Excel for debugging
+                console.log('📋 ALL COUNTRIES FROM EXCEL:');
+                countries.forEach((c, i) => {
+                    if (i < 20) console.log(`   ${i+1}. ${c.name} (${c.lat ? 'HAS' : 'NO'} coordinates)`);
+                });
+                
+                // Initialize the map after data is loaded
+                initializeMap();
+                
+            } catch (error) {
+                console.error('❌ Error loading Excel file:', error);
+                console.log('🔄 Using minimal fallback data...');
+                  // Minimal fallback data for testing
+                countries = [
+                    { name: 'Norwegen', lat: 60.472, lng: 8.4689, score: 7.82, color: '#27ae60', rank: 1 },
+                    { name: 'Deutschland', lat: 51.1657, lng: 10.4515, score: 15.24, color: '#27ae60', rank: 10 },
+                    { name: 'USA', lat: 37.0902, lng: -95.7129, score: 40.85, color: '#f39c12', rank: 50 },
+                    { name: 'China', lat: 35.8617, lng: 104.1954, score: 78.30, color: '#e74c3c', rank: 170 },
+                    { name: 'Russland', lat: 61.5240, lng: 105.3188, score: 83.42, color: '#8b0000', rank: 175 }
+                ];
+                
+                console.log('📍 Using fallback data with', countries.length, 'countries');
+                initializeMap();
+            }
+        }// Initialize map function
+        function initializeMap() {
+            if (pressMap) {
+                pressMap.remove(); // Remove existing map if any
+            }
+            
+            // Call the original map creation and ranking functions
+            setTimeout(() => {
+                createPressMap();
+                populateModalRanking();
+            }, 100);        }
 
         // Modal öffnen/schließen
         window.openModal = function(modalId) {
@@ -595,9 +953,11 @@
                     }, 200);
                 }
             }
-        };        // Zurück zur Hauptseite
+        };
+
+        // Zurück zur Hauptseite
         window.goBackToMain = function() {
-            window.location.href = 'zensur.html';
+            window.location.href = 'index.html';
         };
 
         window.closeModal = function(modalId) {
@@ -610,96 +970,418 @@
                 const mapContainer = document.getElementById('pressmap');
                 if (!mapContainer) return;
 
-                // Entferne alte Karte
-                if (pressMap) {
-                    pressMap.remove();
-                    pressMap = null;
-                }
-
-                mapContainer.innerHTML = '';
-
-                // Neue Karte erstellen
+                // Initialisiere die Karte
                 pressMap = L.map('pressmap').setView([30, 0], 2);
 
-                // OpenStreetMap Tiles
+                // Basiskarte hinzufügen (OpenStreetMap)
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(pressMap);
-
-                // Marker für jedes Land
-                countries.forEach(country => {
-                    // Farbiger Punkt statt Pin
-                    const marker = L.circleMarker([country.lat, country.lng], {
-                        color: 'white',
-                        fillColor: country.color,
-                        fillOpacity: 0.9,
-                        radius: 10,
-                        weight: 2
-                    }).addTo(pressMap);
-
-                    // Popup-Inhalt
-                    const bannedBooksHtml = country.bannedBooks.map(book => '<li>' + book + '</li>').join('');
+                    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 10,
+                    minZoom: 1
+                }).addTo(pressMap);                // Länder als Marker auf der Karte hinzufügen
+                countries.forEach((country, index) => {
+                    let lat = country.lat;
+                    let lng = country.lng;
                     
-                    const popupContent = 
-                        '<div style="max-width: 280px;">' +
-                        '<h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 1.2rem;">' + country.name + '</h3>' +
-                        '<div style="background: linear-gradient(135deg, ' + country.color + ', ' + country.color + '90); color: white; padding: 8px 12px; border-radius: 15px; text-align: center; margin-bottom: 15px;">' +
-                        '<strong>Pressefreiheits-Score: ' + country.score + '</strong>' +
-                        '</div>' +
-                        '<div style="margin-bottom: 15px;">' +
-                        '<h4 style="margin: 0 0 8px 0; color: #e74c3c; font-size: 1rem;">📚 Verbotene/Zensierte Bücher:</h4>' +
-                        '<ul style="margin: 0; padding-left: 20px; color: #555;">' + bannedBooksHtml + '</ul>' +
-                        '</div>' +
-                        '</div>';
+                    // Skip countries without coordinates rather than placing them in a grid
+                    if (!lat || !lng || lat === 0 || lng === 0) {
+                        console.warn(`⚠️ No coordinates found for ${country.name}, skipping map marker`);
+                        return; // Skip this country for map display
+                    }
+                    
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 8,
+                        fillColor: country.color,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(pressMap);// Popup-Inhalt
+                        const popupContent = 
+                            '<div style="max-width: 280px;">' +
+                            '<h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 1.2rem;">' + country.name + '</h3>' +
+                            '<div style="background: linear-gradient(135deg, ' + country.color + ', ' + country.color + '90); color: white; padding: 8px 12px; border-radius: 15px; text-align: center; margin-bottom: 15px;">' +
+                            '<strong>Pressefreiheits-Score: ' + country.score.toFixed(2) + '</strong>' +
+                            '</div>' +
+                            '<div style="margin-bottom: 10px; text-align: center;">' +
+                            '<p style="color: #666; font-size: 0.9rem; margin: 0;">Rang: <strong>' + country.rank + '</strong> von 180 Ländern</p>' +
+                            '</div>' +
+                            '</div>';
 
-                    marker.bindPopup(popupContent);
-                });
+                        marker.bindPopup(popupContent);
+
+                        // Add click event to highlight country in ranking table
+                        marker.on('click', function() {
+                            highlightCountryInTable(country.name);
+                        });                });
 
                 console.log('✅ Pressefreiheits-Karte erfolgreich erstellt');
             } catch (error) {
                 console.error('❌ Fehler beim Erstellen der Karte:', error);
             }
-        }
-
-        // Rangliste für Modal populieren
+        }// Rangliste im Modal füllen
         function populateModalRanking() {
             const tbody = document.getElementById('ranking-tbody-modal');
             if (!tbody) return;
 
-            // Sortiere Länder nach Score (absteigend)
-            const sortedCountries = [...countries].sort((a, b) => b.score - a.score);
-            
             tbody.innerHTML = '';
             
+            const sortedCountries = [...countries].sort((a, b) => a.rank - b.rank);
+            
+            console.log('📋 Populating ranking table with', sortedCountries.length, 'countries');
+            
             sortedCountries.forEach((country, index) => {
-                const rank = index + 1;
-                let scoreColor = '#27ae60'; // Grün
+                if (!country.rank && !country.name) return;
                 
-                if (country.score < 60) scoreColor = '#e74c3c'; // Rot
-                else if (country.score < 70) scoreColor = '#e67e22'; // Orange
-                else if (country.score < 80) scoreColor = '#f39c12'; // Gelb-Orange
-                
-                const row = document.createElement('tr');
+                const rank = country.rank || (index + 1);
+                const score = country.score || 0;
+                  // Debug: Log first few entries
+                if (index < 5) {
+                    console.log(`📊 Table entry ${index + 1}: ${country.name}, Rank: ${rank}, Score: ${score}`);
+                }
+                  // Score color logic: HIGH scores = GOOD (green), LOW scores = BAD (red)
+                // Based on RSF 2025 data where Norway has ~92 points (best)
+                let scoreColor = '#e74c3c'; // Default: Rot für niedrige Scores (schlecht)
+                if (score >= 80) scoreColor = '#27ae60'; // Grün für hohe Scores (sehr gut)
+                else if (score >= 70) scoreColor = '#2ecc71'; // Hellgrün für gute Scores
+                else if (score >= 50) scoreColor = '#f39c12'; // Orange für mittlere Scores
+                else if (score >= 30) scoreColor = '#e67e22'; // Dunkelorange für niedrige Scores
+                  const row = document.createElement('tr');
                 row.style.borderBottom = '1px solid #f0f0f0';
+                row.style.cursor = 'pointer';
+                row.style.transition = 'background-color 0.3s ease';
+                row.setAttribute('data-country', country.name);
+                
+                // Add hover effects
+                row.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#f8f9fa';
+                });
+                row.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('highlighted')) {
+                        this.style.backgroundColor = '';
+                    }
+                });
+                
+                // Add click event to zoom to country on map
+                row.addEventListener('click', function() {
+                    zoomToCountryOnMap(country.name, country.lat, country.lng);
+                });
+                
+                // Format score to show decimal places
+                const formattedScore = score > 0 ? score.toFixed(2) : 'N/A';
                 
                 row.innerHTML = `
                     <td style="padding: 8px; text-align: center; font-weight: ${rank <= 10 ? 'bold' : 'normal'}; color: ${rank <= 10 ? '#2c3e50' : '#666'};">${rank}</td>
                     <td style="padding: 8px; font-weight: ${['Deutschland', 'USA', 'China', 'Russland'].includes(country.name) ? 'bold' : 'normal'};">${country.name}</td>
-                    <td style="padding: 8px; text-align: center; color: ${scoreColor}; font-weight: bold;">${country.score}</td>
+                    <td style="padding: 8px; text-align: center; color: ${scoreColor}; font-weight: bold;">${formattedScore}</td>
                 `;
                 
                 tbody.appendChild(row);
             });
+            
+            console.log('✅ Ranking table populated successfully');
+        }        // Initialisiere beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load RSF data from Excel file first, then initialize map
+            loadRSFData();
+        });
+
+        // Function to highlight country in ranking table
+        function highlightCountryInTable(countryName) {
+            // Remove previous highlights
+            const previousHighlighted = document.querySelectorAll('tr.highlighted');
+            previousHighlighted.forEach(row => {
+                row.classList.remove('highlighted');
+                row.style.backgroundColor = '';
+            });
+            
+            // Find and highlight the country row
+            const rows = document.querySelectorAll('tr[data-country]');
+            rows.forEach(row => {
+                if (row.getAttribute('data-country') === countryName) {
+                    row.classList.add('highlighted');
+                    row.style.backgroundColor = '#e3f2fd';
+                    row.style.fontWeight = 'bold';
+                    
+                    // Scroll to the row
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Flash effect
+                    row.style.animation = 'flash 1s ease-in-out';
+                    setTimeout(() => {
+                        row.style.animation = '';
+                    }, 1000);
+                }
+            });
+        }        // Function to get regional zoom settings for a country
+        function getRegionalZoom(countryName, lat, lng) {
+            // Define regions with their center coordinates and zoom levels
+            const regions = {
+                // Skandinavien
+                'Norway': { center: [62, 15], zoom: 4 },
+                'Norwegen': { center: [62, 15], zoom: 4 },
+                'Sweden': { center: [62, 15], zoom: 4 },
+                'Schweden': { center: [62, 15], zoom: 4 },
+                'Denmark': { center: [62, 15], zoom: 4 },
+                'Dänemark': { center: [62, 15], zoom: 4 },
+                'Finland': { center: [62, 15], zoom: 4 },
+                'Finnland': { center: [62, 15], zoom: 4 },
+                'Iceland': { center: [62, 15], zoom: 4 },
+                'Island': { center: [62, 15], zoom: 4 },
+                
+                // Mitteleuropa
+                'Germany': { center: [51, 10], zoom: 4 },
+                'Deutschland': { center: [51, 10], zoom: 4 },
+                'Austria': { center: [51, 10], zoom: 4 },
+                'Österreich': { center: [51, 10], zoom: 4 },
+                'Switzerland': { center: [51, 10], zoom: 4 },
+                'Schweiz': { center: [51, 10], zoom: 4 },
+                'Czech Republic': { center: [51, 10], zoom: 4 },
+                'Tschechien': { center: [51, 10], zoom: 4 },
+                'Poland': { center: [51, 10], zoom: 4 },
+                'Polen': { center: [51, 10], zoom: 4 },
+                'Slovakia': { center: [51, 10], zoom: 4 },
+                'Slowakei': { center: [51, 10], zoom: 4 },
+                'Hungary': { center: [51, 10], zoom: 4 },
+                'Ungarn': { center: [51, 10], zoom: 4 },
+                
+                // Westeuropa
+                'France': { center: [47, 2], zoom: 4 },
+                'Frankreich': { center: [47, 2], zoom: 4 },
+                'Belgium': { center: [47, 2], zoom: 4 },
+                'Belgien': { center: [47, 2], zoom: 4 },
+                'Netherlands': { center: [47, 2], zoom: 4 },
+                'Niederlande': { center: [47, 2], zoom: 4 },
+                'Luxembourg': { center: [47, 2], zoom: 4 },
+                'Luxemburg': { center: [47, 2], zoom: 4 },
+                
+                // Britische Inseln
+                'United Kingdom': { center: [54, -2], zoom: 4 },
+                'UK': { center: [54, -2], zoom: 4 },
+                'Ireland': { center: [54, -2], zoom: 4 },
+                'Irland': { center: [54, -2], zoom: 4 },
+                
+                // Südeuropa
+                'Spain': { center: [40, 0], zoom: 4 },
+                'Spanien': { center: [40, 0], zoom: 4 },
+                'Portugal': { center: [40, 0], zoom: 4 },
+                'Italy': { center: [40, 0], zoom: 4 },
+                'Italien': { center: [40, 0], zoom: 4 },
+                'Greece': { center: [40, 0], zoom: 4 },
+                'Griechenland': { center: [40, 0], zoom: 4 },
+                'Malta': { center: [40, 0], zoom: 4 },
+                
+                // Balkan
+                'Serbia': { center: [44, 20], zoom: 4 },
+                'Serbien': { center: [44, 20], zoom: 4 },
+                'Croatia': { center: [44, 20], zoom: 4 },
+                'Kroatien': { center: [44, 20], zoom: 4 },
+                'Bosnia and Herzegovina': { center: [44, 20], zoom: 4 },
+                'Bosnien': { center: [44, 20], zoom: 4 },
+                'Slovenia': { center: [44, 20], zoom: 4 },
+                'Slowenien': { center: [44, 20], zoom: 4 },
+                'North Macedonia': { center: [44, 20], zoom: 4 },
+                'Albania': { center: [44, 20], zoom: 4 },
+                'Albanien': { center: [44, 20], zoom: 4 },
+                'Montenegro': { center: [44, 20], zoom: 4 },
+                'Kosovo': { center: [44, 20], zoom: 4 },
+                
+                // Osteuropa
+                'Russia': { center: [60, 60], zoom: 3 },
+                'Russland': { center: [60, 60], zoom: 3 },
+                'Ukraine': { center: [50, 30], zoom: 4 },
+                'Belarus': { center: [50, 30], zoom: 4 },
+                'Weißrussland': { center: [50, 30], zoom: 4 },
+                'Moldova': { center: [50, 30], zoom: 4 },
+                'Moldau': { center: [50, 30], zoom: 4 },
+                'Romania': { center: [50, 30], zoom: 4 },
+                'Rumänien': { center: [50, 30], zoom: 4 },
+                'Bulgaria': { center: [50, 30], zoom: 4 },
+                'Bulgarien': { center: [50, 30], zoom: 4 },
+                
+                // Baltikum
+                'Estonia': { center: [58, 25], zoom: 4 },
+                'Estland': { center: [58, 25], zoom: 4 },
+                'Latvia': { center: [58, 25], zoom: 4 },
+                'Lettland': { center: [58, 25], zoom: 4 },
+                'Lithuania': { center: [58, 25], zoom: 4 },
+                'Litauen': { center: [58, 25], zoom: 4 },
+                
+                // Nordamerika
+                'United States': { center: [39, -98], zoom: 3 },
+                'USA': { center: [39, -98], zoom: 3 },
+                'Canada': { center: [56, -106], zoom: 3 },
+                'Kanada': { center: [56, -106], zoom: 3 },
+                'Mexico': { center: [23, -102], zoom: 4 },
+                'Mexiko': { center: [23, -102], zoom: 4 },
+                
+                // Südamerika
+                'Brazil': { center: [-10, -55], zoom: 3 },
+                'Brasilien': { center: [-10, -55], zoom: 3 },
+                'Argentina': { center: [-34, -64], zoom: 3 },
+                'Argentinien': { center: [-34, -64], zoom: 3 },
+                'Chile': { center: [-30, -71], zoom: 3 },
+                'Colombia': { center: [4, -72], zoom: 4 },
+                'Kolumbien': { center: [4, -72], zoom: 4 },
+                'Peru': { center: [-9, -75], zoom: 4 },
+                'Venezuela': { center: [6, -66], zoom: 4 },
+                'Ecuador': { center: [-1, -78], zoom: 4 },
+                'Uruguay': { center: [-33, -56], zoom: 5 },
+                'Paraguay': { center: [-23, -58], zoom: 5 },
+                'Bolivia': { center: [-17, -65], zoom: 4 },
+                'Bolivien': { center: [-17, -65], zoom: 4 },
+                
+                // Ostasien
+                'China': { center: [35, 104], zoom: 3 },
+                'Japan': { center: [36, 138], zoom: 4 },
+                'South Korea': { center: [36, 128], zoom: 5 },
+                'Südkorea': { center: [36, 128], zoom: 5 },
+                'North Korea': { center: [40, 127], zoom: 5 },
+                'Nordkorea': { center: [40, 127], zoom: 5 },
+                'Taiwan': { center: [24, 121], zoom: 6 },
+                'Hong Kong': { center: [22, 114], zoom: 6 },
+                'Hongkong': { center: [22, 114], zoom: 6 },
+                
+                // Südasien
+                'India': { center: [20, 77], zoom: 3 },
+                'Indien': { center: [20, 77], zoom: 3 },
+                'Pakistan': { center: [30, 70], zoom: 4 },
+                'Bangladesh': { center: [24, 90], zoom: 5 },
+                'Bangladesch': { center: [24, 90], zoom: 5 },
+                'Sri Lanka': { center: [7, 81], zoom: 6 },
+                'Nepal': { center: [28, 84], zoom: 5 },
+                'Bhutan': { center: [27, 90], zoom: 6 },
+                
+                // Südostasien
+                'Indonesia': { center: [-2, 118], zoom: 3 },
+                'Indonesien': { center: [-2, 118], zoom: 3 },
+                'Thailand': { center: [15, 100], zoom: 4 },
+                'Vietnam': { center: [14, 108], zoom: 4 },
+                'Malaysia': { center: [4, 109], zoom: 4 },
+                'Philippines': { center: [13, 122], zoom: 4 },
+                'Philippinen': { center: [13, 122], zoom: 4 },
+                'Singapore': { center: [1, 103], zoom: 6 },
+                'Singapur': { center: [1, 103], zoom: 6 },
+                'Cambodia': { center: [13, 105], zoom: 5 },
+                'Kambodscha': { center: [13, 105], zoom: 5 },
+                'Laos': { center: [18, 105], zoom: 5 },
+                'Myanmar': { center: [22, 98], zoom: 4 },
+                'Burma': { center: [22, 98], zoom: 4 },
+                
+                // Naher Osten
+                'Turkey': { center: [39, 35], zoom: 4 },
+                'Türkei': { center: [39, 35], zoom: 4 },
+                'Iran': { center: [32, 53], zoom: 4 },
+                'Iraq': { center: [33, 44], zoom: 4 },
+                'Irak': { center: [33, 44], zoom: 4 },
+                'Syria': { center: [35, 38], zoom: 5 },
+                'Syrien': { center: [35, 38], zoom: 5 },
+                'Lebanon': { center: [34, 36], zoom: 6 },
+                'Libanon': { center: [34, 36], zoom: 6 },
+                'Jordan': { center: [31, 36], zoom: 5 },
+                'Jordanien': { center: [31, 36], zoom: 5 },
+                'Israel': { center: [31, 35], zoom: 5 },
+                'Palestine': { center: [32, 35], zoom: 6 },
+                'Palästina': { center: [32, 35], zoom: 6 },
+                'Saudi Arabia': { center: [24, 45], zoom: 4 },
+                'Saudi-Arabien': { center: [24, 45], zoom: 4 },
+                'UAE': { center: [24, 54], zoom: 5 },
+                'Qatar': { center: [25, 51], zoom: 6 },
+                'Katar': { center: [25, 51], zoom: 6 },
+                'Kuwait': { center: [29, 48], zoom: 6 },
+                'Bahrain': { center: [26, 50], zoom: 7 },
+                'Oman': { center: [21, 56], zoom: 5 },
+                'Yemen': { center: [15, 48], zoom: 5 },
+                'Jemen': { center: [15, 48], zoom: 5 },
+                
+                // Afrika
+                'Egypt': { center: [26, 30], zoom: 4 },
+                'Ägypten': { center: [26, 30], zoom: 4 },
+                'Libya': { center: [25, 17], zoom: 4 },
+                'Libyen': { center: [25, 17], zoom: 4 },
+                'Tunisia': { center: [34, 9], zoom: 5 },
+                'Tunesien': { center: [34, 9], zoom: 5 },
+                'Algeria': { center: [28, 1], zoom: 4 },
+                'Algerien': { center: [28, 1], zoom: 4 },
+                'Morocco': { center: [32, -5], zoom: 4 },
+                'Marokko': { center: [32, -5], zoom: 4 },
+                'South Africa': { center: [-29, 24], zoom: 4 },
+                'Südafrika': { center: [-29, 24], zoom: 4 },
+                'Nigeria': { center: [9, 8], zoom: 4 },
+                'Kenya': { center: [-1, 37], zoom: 4 },
+                'Kenia': { center: [-1, 37], zoom: 4 },
+                'Ethiopia': { center: [9, 40], zoom: 4 },
+                'Äthiopien': { center: [9, 40], zoom: 4 },
+                
+                // Ozeanien
+                'Australia': { center: [-25, 133], zoom: 3 },
+                'Australien': { center: [-25, 133], zoom: 3 },
+                'New Zealand': { center: [-41, 174], zoom: 4 },
+                'Neuseeland': { center: [-41, 174], zoom: 4 },
+            };
+            
+            // Check if country has regional zoom settings
+            if (regions[countryName]) {
+                return regions[countryName];
+            }
+            
+            // Default fallback based on geographical regions
+            if (lat > 50 && lng > -10 && lng < 30) {
+                return { center: [60, 15], zoom: 4 }; // Northern Europe
+            } else if (lat > 35 && lat < 50 && lng > -10 && lng < 30) {
+                return { center: [47, 10], zoom: 4 }; // Central Europe
+            } else if (lat > 30 && lat < 45 && lng > -10 && lng < 50) {
+                return { center: [40, 20], zoom: 4 }; // Southern Europe/Mediterranean
+            } else if (lat > 10 && lat < 70 && lng > 20 && lng < 180) {
+                return { center: [40, 80], zoom: 3 }; // Asia
+            } else if (lat > -60 && lat < 15 && lng > -180 && lng < -30) {
+                return { center: [-15, -60], zoom: 3 }; // South America
+            } else if (lat > 15 && lat < 70 && lng > -180 && lng < -30) {
+                return { center: [45, -100], zoom: 3 }; // North America
+            } else if (lat > -40 && lat < 40 && lng > -20 && lng < 60) {
+                return { center: [0, 20], zoom: 3 }; // Africa
+            } else if (lat < -10 && lng > 110) {
+                return { center: [-25, 140], zoom: 3 }; // Oceania
+            }
+            
+            // Ultimate fallback
+            return { center: [lat, lng], zoom: 5 };
         }
 
-        // Initialisiere beim Laden der Seite
-        document.addEventListener('DOMContentLoaded', () => {
-            // Automatisch das Modal öffnen
-            setTimeout(() => {
-                createPressMap();
-                populateModalRanking();
-            }, 100);
-        });
+        // Function to zoom to country on map
+        function zoomToCountryOnMap(countryName, lat, lng) {
+            if (!pressMap || !lat || !lng) return;
+            
+            // Get regional zoom settings
+            const zoomSettings = getRegionalZoom(countryName, lat, lng);
+            
+            // Zoom to regional view instead of specific country
+            pressMap.setView(zoomSettings.center, zoomSettings.zoom, { animate: true, duration: 1.0 });
+            
+            // Find and highlight the country marker
+            pressMap.eachLayer(function(layer) {
+                if (layer.getPopup && layer.getPopup()) {
+                    const popupContent = layer.getPopup().getContent();
+                    if (popupContent.includes(countryName)) {
+                        // Add a flash effect to the marker
+                        if (layer.setStyle) {
+                            const originalStyle = {
+                                radius: layer.options.radius,
+                                color: layer.options.color,
+                                weight: layer.options.weight
+                            };
+                            
+                            // Flash effect
+                            layer.setStyle({ radius: 12, color: '#ff6b6b', weight: 4 });
+                            setTimeout(() => {
+                                layer.setStyle(originalStyle);
+                                layer.openPopup();
+                            }, 500);
+                        }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
