@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geschichte der Zensur - Interaktiver Zeitstrahl</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            max-width: 90vw;
+            max-height: 90vh;
+            width: 90vw;
+            height: 90vh;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }        .modal-body {
+            height: calc(90vh - 80px);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 25%, #fecfef 75%, #ffc3a0 100%);
+            background-size: 400% 400%;
+        }        /* Interactive Timeline */        .timeline-wrapper {
+            position: relative;
+            min-height: 300vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 50px;
+            bottom: 50px;
+            width: 6px;
+            background: linear-gradient(to bottom, #3498db, #e74c3c, #f39c12, #9b59b6, #27ae60);
+            transform: translateX(-50%);
+            border-radius: 3px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }        /* Timeline Points */
+        .timeline-point {
+            position: absolute;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(30px) scale(0.8);
+        }
+
+        .timeline-point.animate-in {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            animation: pointPop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes pointPop {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.5) rotate(-10deg);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.2) rotate(5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .timeline-point:hover {
+            transform: scale(1.05);
+        }
+
+        .timeline-dot-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.6);
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .timeline-point.animate-in .timeline-dot {
+            animation: dotBounce 0.6s ease 0.1s both;
+        }
+
+        @keyframes dotBounce {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.5) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+
+        .timeline-dot:hover {
+            transform: scale(1.3);
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.8);
+        }.timeline-year {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-point.animate-in .timeline-year {
+            animation: yearGlow 1s ease 0.3s both;
+        }
+
+        @keyframes yearGlow {
+            0% {
+                background: linear-gradient(135deg, #2c3e50, #34495e);
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+            50% {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                transform: scale(1.15);
+                box-shadow: 0 8px 30px rgba(255, 107, 107, 0.8);
+            }
+            100% {
+                background: linear-gradient(135deg, #2c3e50, #34495e);
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+        }
+
+        .timeline-title {
+            background: rgba(255,255,255,0.95);
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #2c3e50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 250px;
+            line-height: 1.3;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .timeline-point:nth-child(odd) .timeline-title {
+            left: 60%;
+            margin-left: 20px;
+        }
+
+        .timeline-point:nth-child(even) .timeline-title {
+            right: 60%;
+            margin-right: 20px;
+        }
+
+        /* Event Detail Card (hidden by default) */
+        .event-detail-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90vw;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .event-detail-card.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .detail-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .detail-close:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .detail-year {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .detail-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .detail-description {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .detail-impact {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Overlay for detail card */
+        .detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .detail-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95vw;
+                height: 90vh;
+                max-width: 95vw;
+                max-height: 90vh;
+            }
+            
+            .modal-body {
+                height: calc(90vh - 80px);
+            }
+            
+            .timeline-title {
+                font-size: 0.8rem;
+                max-width: 150px;
+            }
+            
+            .event-detail-card {
+                width: 95vw;
+                padding: 20px;
+            }
+        }
+    </style>
+
+    <div class="container">
+        <div class="modal-overlay active">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">📜 Geschichte der Zensur - Interaktiver Zeitstrahl</h2>
+                    <button class="close-btn" onclick="goBackToMain()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="timeline-wrapper">
+                        <div class="timeline-line"></div>
+                          <!-- Timeline Points -->                        <div class="timeline-point" style="top: 150px;" onclick="showDetail('sokrates')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">399 v.Chr.</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Tod des Sokrates</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 350px;" onclick="showDetail('china')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">213 v.Chr.</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Bücherverbrennung China</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 550px;" onclick="showDetail('index')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">1559</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Index verbotener Bücher</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 750px;" onclick="showDetail('remarque')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">1929</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">"Im Westen nichts Neues"</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 950px;" onclick="showDetail('nazis')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">1933</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Nazi-Bücherverbrennungen</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 1150px;" onclick="showDetail('fahrenheit')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">1953</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Fahrenheit 451</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 1350px;" onclick="showDetail('rushdie')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">1989</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Rushdie Todesurteil</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 1550px;" onclick="showDetail('arabischer')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">2010</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">Arabischer Frühling</div>
+                        </div>
+
+                        <div class="timeline-point" style="top: 1750px;" onclick="showDetail('ki')">
+                            <div class="timeline-dot-container">
+                                <div class="timeline-year">2025</div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-title">KI-Zensur HEUTE</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Overlay -->
+    <div class="detail-overlay" id="detailOverlay" onclick="hideDetail()"></div>
+    
+    <!-- Detail Card -->
+    <div class="event-detail-card" id="detailCard">
+        <button class="detail-close" onclick="hideDetail()">×</button>
+        <div class="detail-year" id="detailYear"></div>
+        <div class="detail-icon" id="detailIcon"></div>
+        <div class="detail-title" id="detailTitle"></div>
+        <div class="detail-description" id="detailDescription"></div>
+        <div class="detail-impact" id="detailImpact"></div>
+    </div>
+
+    <script>
+        // Event data
+        const eventData = {
+            sokrates: {
+                year: '399 v.Chr.',
+                icon: '⚱️',
+                title: 'Tod des Sokrates',
+                description: 'Der große Philosoph Sokrates wird in Athen zum Tode verurteilt, weil seine kritischen Fragen und sein Hinterfragen der Autoritäten als "Verführung der Jugend" und "Gottlosigkeit" angesehen werden.',
+                impact: '💀 Erste dokumentierte Zensur kritischen Denkens in der Geschichte!'
+            },
+            china: {
+                year: '213 v.Chr.',
+                icon: '🔥',
+                title: 'Bücherverbrennung in China',
+                description: 'Kaiser Qin Shi Huang ordnet die systematische Vernichtung aller Bücher an, die nicht seiner Staatsideologie entsprechen. Hunderte von Gelehrten werden lebendig begraben.',
+                impact: '📚 Erste systematische Bücherverbrennung der Weltgeschichte!'
+            },
+            index: {
+                year: '1559',
+                icon: '📋',
+                title: 'Index Librorum Prohibitorum',
+                description: 'Die katholische Kirche erstellt die erste offizielle Liste verbotener Bücher. Wer diese Bücher liest, dem droht die Exkommunikation und ewige Verdammnis!',
+                impact: '⛪ 400 Jahre lang bestimmte die Kirche, was Menschen lesen dürfen!'
+            },
+            remarque: {
+                year: '1929',
+                icon: '📚',
+                title: '"Im Westen nichts Neues" verboten',
+                description: 'Remarques Anti-Kriegs-Roman wird in Deutschland verboten und der gleichnamige Film gestoppt, weil er die brutale Wahrheit über den Ersten Weltkrieg zeigt.',
+                impact: '🎬 Ein Buch, das Millionen die Augen über die Schrecken des Krieges öffnete!'
+            },
+            nazis: {
+                year: '1933',
+                icon: '🔥',
+                title: 'Nazi-Bücherverbrennungen',
+                description: 'Die Nazis veranstalten öffentliche Bücherverbrennungen. In einer einzigen Nacht werden 25.000 Bücher vernichtet. "Wo man Bücher verbrennt, verbrennt man auch am Ende Menschen" - Heinrich Heine.',
+                impact: '💀 Der Weg vom Bücherverbrennen zum Völkermord!'
+            },
+            fahrenheit: {
+                year: '1953',
+                icon: '🔥',
+                title: 'Fahrenheit 451 erscheint',
+                description: 'Ray Bradbury veröffentlicht seine düstere Vision einer Zukunft, in der Bücher verboten sind. Ironischerweise wird das Buch selbst später zensiert!',
+                impact: '🔮 Eine prophetische Warnung vor unserer digitalen Zukunft!'
+            },
+            rushdie: {
+                year: '1989',
+                icon: '🏃',
+                title: 'Salman Rushdie - Todesurteil',
+                description: 'Nach der Veröffentlichung der "Satanischen Verse" wird eine Fatwa gegen Rushdie ausgesprochen. Er muss jahrelang im Versteck leben - nur wegen eines Buches!',
+                impact: '💰 3 Millionen Dollar Kopfgeld auf einen Autor!'
+            },
+            arabischer: {
+                year: '2010',
+                icon: '🌐',
+                title: 'Arabischer Frühling & Zensur',
+                description: 'Regierungen weltweit erkennen die revolutionäre Macht sozialer Medien und beginnen systematisch, das Internet zu zensieren und komplett abzuschalten.',
+                impact: '📱 Der Beginn der digitalen Zensur-Ära!'
+            },
+            ki: {
+                year: '2025',
+                icon: '🤖',
+                title: 'KI-gesteuerte Zensur HEUTE',
+                description: 'Künstliche Intelligenz entscheidet automatisch, was Millionen von Menschen sehen dürfen. Algorithmen zensieren mehr Inhalte als alle Diktatoren der Geschichte zusammen!',
+                impact: '🚨 Die Zukunft der Zensur ist bereits HIER!'
+            }
+        };        // Show detail card
+        window.showDetail = function(eventId) {
+            const event = eventData[eventId];
+            if (!event) return;
+
+            document.getElementById('detailYear').textContent = event.year;
+            document.getElementById('detailIcon').textContent = event.icon;
+            document.getElementById('detailTitle').textContent = event.title;
+            document.getElementById('detailDescription').textContent = event.description;
+            document.getElementById('detailImpact').textContent = event.impact;
+
+            document.getElementById('detailOverlay').classList.add('show');
+            document.getElementById('detailCard').classList.add('show');
+        }
+
+        // Hide detail card
+        window.hideDetail = function() {
+            document.getElementById('detailOverlay').classList.remove('show');
+            document.getElementById('detailCard').classList.remove('show');
+        }
+
+        // Back to main page
+        window.goBackToMain = function() {
+            window.location.href = 'zensur.html';
+        }        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup scroll animations
+            setupScrollAnimations();
+            
+            // ESC key to close detail
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideDetail();
+                }
+            });
+        });
+
+        // Setup scroll-based animations
+        function setupScrollAnimations() {
+            const timelinePoints = document.querySelectorAll('.timeline-point');
+            const modalBody = document.querySelector('.modal-body');
+
+            // Intersection Observer for scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Add animation class when element comes into view
+                        entry.target.classList.add('animate-in');
+                    }
+                });
+            }, {
+                root: modalBody,
+                rootMargin: '0px 0px -100px 0px',
+                threshold: 0.3
+            });
+
+            // Observe all timeline points
+            timelinePoints.forEach(point => {
+                observer.observe(point);
+            });
+        }
+    </script>
+</body>
+</html>

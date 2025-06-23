@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verbotene Bücher</title>
+</head>
+<body>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 90vw;
+            max-height: 90vh;
+            width: 90vw;
+            height: 90vh;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 40px 20px;
+            text-align: center;
+            height: calc(90vh - 80px);
+            overflow-y: auto;
+        }
+
+        .card-stack-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .card-stack {
+            position: relative;
+            width: 380px;
+            height: 480px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 100;
+            margin: 0 auto;
+            border: 2px dashed #ccc;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .card-stack:hover {
+            transform: scale(1.02);
+        }
+
+        .card-stack:active {
+            transform: scale(0.98);
+        }
+
+        .book-card-stack {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 310px;
+            height: 420px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            padding: 30px;
+            border: 3px solid #3498db;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-origin: center center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            pointer-events: auto;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .book-card-stack:hover {
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            border-color: #3498db;
+        }
+
+        .book-card-stack:nth-child(1) { z-index: 10; transform: translateX(0px) translateY(0px) rotateZ(0deg); }
+        .book-card-stack:nth-child(2) { z-index: 9; transform: translateX(5px) translateY(5px) rotateZ(-1deg); }
+        .book-card-stack:nth-child(3) { z-index: 8; transform: translateX(10px) translateY(10px) rotateZ(1deg); }
+        .book-card-stack:nth-child(4) { z-index: 7; transform: translateX(15px) translateY(15px) rotateZ(-0.5deg); }
+
+        .book-card-stack.moving-back {
+            transform: translateZ(-100px) rotateZ(10deg) translateY(-50px) scale(0.8) !important;
+            opacity: 0;
+            z-index: 1 !important;
+        }
+
+        .book-card-stack.coming-forward {
+            animation: comeForward 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes comeForward {
+            from {
+                transform: translateX(25px) translateY(25px) rotateZ(-2deg) scale(0.95);
+                opacity: 0.8;
+            }
+            to {
+                transform: translateX(0px) translateY(0px) rotateZ(0deg) scale(1);
+                opacity: 1;
+            }
+        }        .book-icon {
+            font-size: 3.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .book-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .book-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .book-author {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .book-description {
+            font-size: 0.95rem;
+            color: #555;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .book-banned-in {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .stack-counter {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .stack-counter span {
+            color: #3498db;
+            font-weight: bold;
+        }
+    </style>
+
+    <div class="container">
+        <!-- Modal für Verbotene Bücher -->
+        <div class="modal-overlay active" id="modal-books">
+            <div class="modal-content">                <div class="modal-header">
+                    <h2 class="modal-title">Verbotene Bücher</h2>
+                    <button class="close-btn" onclick="goBackToMain()">&times;</button>
+                </div><div class="modal-body">
+                    <div style="text-align: center; padding: 40px 20px;">
+                        
+                        <!-- Kartenstapel Container -->
+                        <div class="card-stack-container">
+                            <div class="card-stack" id="book-stack" onclick="nextBookCard()">
+                                <!-- Karten werden hier dynamisch eingefügt -->
+                            </div>
+                            <div class="stack-counter">
+                                <span id="current-card">1</span> / <span id="total-cards">12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Bücher-Kartenstapel Daten
+        const bannedBooks = [
+            {
+                title: "1984",
+                author: "George Orwell",
+                description: "Dystopischer Roman über totale Überwachung und Gedankenkontrolle in einem autoritären Staat.",
+                bannedIn: "Russland, China, Nordkorea, Belarus",
+                icon: "📖"
+            },
+            {
+                title: "Fahrenheit 451",
+                author: "Ray Bradbury", 
+                description: "Ironisch: Ein Buch über Bücherverbrennung, das selbst zensiert wird.",
+                bannedIn: "USA (verschiedene Schulbezirke), China",
+                icon: "🔥"
+            },
+            {
+                title: "Animal Farm",
+                author: "George Orwell",
+                description: "Politische Fabel über Macht und Korruption, getarnt als Tierfarm-Geschichte.",
+                bannedIn: "Sowjetunion, China, Nordkorea, Kuba",
+                icon: "🐷"
+            },
+            {
+                title: "Die Satanischen Verse",
+                author: "Salman Rushdie",
+                description: "Kontroverse Darstellung religiöser Themen führte zu internationalen Protesten.",
+                bannedIn: "Iran, Pakistan, Indien, Bangladesch, Saudi-Arabien",
+                icon: "📜"
+            },
+            {
+                title: "Maus",
+                author: "Art Spiegelman",
+                description: "Graphic Novel über den Holocaust - wegen 'anstößiger Sprache' verboten.",
+                bannedIn: "USA (Tennessee), Russland",
+                icon: "🐭"
+            },
+            {
+                title: "Harry Potter Serie",
+                author: "J.K. Rowling",
+                description: "Wegen 'Hexerei' und 'Okkultismus' in religiösen Gemeinden umstritten.",
+                bannedIn: "Teile der USA, VAE, Saudi-Arabien",
+                icon: "⚡"
+            },
+            {
+                title: "Mein Kampf",
+                author: "Adolf Hitler",
+                description: "Nazi-Ideologie und Antisemitismus - in vielen Ländern nur kommentiert erlaubt.",
+                bannedIn: "Deutschland (unkommentiert), Österreich, Frankreich",
+                icon: "⚠️"
+            },
+            {
+                title: "Lolita",
+                author: "Vladimir Nabokov",
+                description: "Kontroverse Thematik führte zu Verboten wegen 'Obszönität'.",
+                bannedIn: "Südafrika, Argentinien, Neuseeland (zeitweise)",
+                icon: "🚫"
+            },
+            {
+                title: "The Anarchist Cookbook",
+                author: "William Powell",
+                description: "Anleitungen für Bomben und Waffen - Sicherheitsrisiko.",
+                bannedIn: "Australien, Großbritannien, Kanada",
+                icon: "💣"
+            },
+            {
+                title: "Areopagitica",
+                author: "John Milton",
+                description: "Ironisch: Ein Essay GEGEN Zensur, der selbst zensiert wurde.",
+                bannedIn: "England (17. Jahrhundert), verschiedene Autokratien",
+                icon: "✍️"
+            },
+            {
+                title: "The Jungle",
+                author: "Upton Sinclair",
+                description: "Aufdeckung von Missständen in der Fleischindustrie führte zu Verboten.",
+                bannedIn: "USA (von Fleischfirmen bekämpft), verschiedene Länder",
+                icon: "🏭"
+            },
+            {
+                title: "Gender Queer",
+                author: "Maia Kobabe",
+                description: "LGBTQ+-Thematik führt zu aktuellen Schulverboten in den USA.",
+                bannedIn: "USA (über 40 Schulbezirke), konservative Gemeinden",
+                icon: "🏳️‍🌈"
+            }
+        ];
+        
+        let currentCardIndex = 0;        // Zurück zur Hauptseite
+        window.goBackToMain = function() {
+            window.location.href = 'zensur.html';
+        };
+
+        window.openModal = function(modalId) {
+            // Nicht mehr verwendet, aber für Kompatibilität beibehalten
+        };
+
+        window.closeModal = function(modalId) {
+            // Nicht mehr verwendet, aber für Kompatibilität beibehalten
+        };
+
+        // Kartenstapel initialisieren
+        window.initBookStack = function() {
+            console.log('initBookStack called');
+            const stack = document.getElementById('book-stack');
+            console.log('Stack element found:', stack);
+            if (!stack) {
+                console.error('book-stack element not found!');
+                return;
+            }
+            
+            stack.innerHTML = '';
+            currentCardIndex = 0;
+            
+            // Erste 4 Karten im Stapel anzeigen
+            for (let i = 0; i < Math.min(4, bannedBooks.length); i++) {
+                const card = createBookCard(bannedBooks[i]);
+                stack.appendChild(card);
+                console.log('Added card:', bannedBooks[i].title);
+            }
+            
+            updateCounter();
+            console.log('Book stack initialized with', stack.children.length, 'cards');
+        };
+          // Buchkarte erstellen
+        function createBookCard(book) {
+            const card = document.createElement('div');
+            card.className = 'book-card-stack';
+            card.innerHTML = `
+                <div class="book-header">📚 Verbotenes Buch</div>
+                <div class="book-icon">${book.icon}</div>
+                <div class="book-title">${book.title}</div>
+                <div class="book-author">${book.author}</div>
+                <div class="book-description">${book.description}</div>
+                <div class="book-banned-in">
+                    <strong>VERBOTEN IN:</strong>
+                    ${book.bannedIn}
+                </div>
+            `;
+            return card;
+        }
+
+        // Nächste Karte anzeigen
+        window.nextBookCard = function() {
+            console.log('nextBookCard clicked!');
+            const stack = document.getElementById('book-stack');
+            if (!stack) {
+                console.log('Stack not found!');
+                return;
+            }
+            
+            const cards = stack.querySelectorAll('.book-card-stack');
+            console.log('Found cards:', cards.length);
+            if (cards.length === 0) return;
+            
+            // Oberste Karte nach hinten animieren
+            const topCard = cards[0];
+            console.log('Moving top card:', topCard);
+            topCard.classList.add('moving-back');
+            
+            // Nach Animation entfernen und neue Karte hinzufügen
+            setTimeout(() => {
+                topCard.remove();
+                
+                // Nächste Karte aus dem Array holen
+                currentCardIndex = (currentCardIndex + 1) % bannedBooks.length;
+                
+                // Prüfen ob wir eine neue Karte brauchen
+                const remainingCards = stack.querySelectorAll('.book-card-stack').length;
+                if (remainingCards < 4) {
+                    const nextBookIndex = (currentCardIndex + remainingCards) % bannedBooks.length;
+                    const newCard = createBookCard(bannedBooks[nextBookIndex]);
+                    stack.appendChild(newCard);
+                }
+                
+                // Alle Karten neu positionieren
+                const allCards = stack.querySelectorAll('.book-card-stack');
+                allCards.forEach((card, index) => {
+                    card.style.zIndex = 10 - index;
+                    card.classList.remove('moving-back', 'coming-forward');
+                    
+                    // Vereinfachte Positionen setzen
+                    if (index === 0) {
+                        card.style.transform = 'translateX(0px) translateY(0px) rotateZ(0deg)';
+                    } else if (index === 1) {
+                        card.style.transform = 'translateX(5px) translateY(5px) rotateZ(-1deg)';
+                    } else if (index === 2) {
+                        card.style.transform = 'translateX(10px) translateY(10px) rotateZ(1deg)';
+                    } else if (index === 3) {
+                        card.style.transform = 'translateX(15px) translateY(15px) rotateZ(-0.5deg)';
+                    }
+                });
+                
+                updateCounter();
+            }, 300);
+        };
+        
+        // Counter aktualisieren
+        function updateCounter() {
+            const currentElement = document.getElementById('current-card');
+            const totalElement = document.getElementById('total-cards');
+            
+            if (currentElement) currentElement.textContent = currentCardIndex + 1;
+            if (totalElement) totalElement.textContent = bannedBooks.length;
+        }
+
+        // Initialisiere beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', () => {
+            // Automatisch initialisieren
+            setTimeout(() => {
+                initBookStack();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

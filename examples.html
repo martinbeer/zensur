@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aktuelle Beispiele von Zensur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 95vw;
+            max-height: 95vh;
+            width: 95vw;
+            height: 95vh;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 40px 20px;
+            height: calc(95vh - 80px);
+            overflow-y: auto;
+        }        /* Header Section */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #e74c3c, #f39c12);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Examples Grid */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .example-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            border-top: 5px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .example-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--color1), var(--color2));
+        }
+
+        .example-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .example-card.china {
+            --color1: #e74c3c;
+            --color2: #c0392b;
+        }
+
+        .example-card.usa {
+            --color1: #3498db;
+            --color2: #2980b9;
+        }
+
+        .example-card.russia {
+            --color1: #f39c12;
+            --color2: #e67e22;
+        }
+
+        .example-card.iran {
+            --color1: #9b59b6;
+            --color2: #8e44ad;
+        }
+
+        .example-card.global {
+            --color1: #1abc9c;
+            --color2: #16a085;
+        }
+
+        .example-card.turkey {
+            --color1: #e67e22;
+            --color2: #d35400;
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .example-flag {
+            font-size: 2.5rem;
+        }
+
+        .example-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .example-subtitle {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .example-content {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .example-stats {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .example-stats ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .example-stats li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .example-stats li::before {
+            content: '●';
+            color: var(--color1, #e74c3c);
+            font-weight: bold;
+        }
+
+        .impact-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        /* Info Sections */
+        .info-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-section li {
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .info-section li:last-child {
+            border-bottom: none;
+        }
+
+        .info-section strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .technique-icon {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #f39c12;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .warning-icon {
+            font-size: 2rem;
+            color: #f39c12;
+        }
+
+        .warning-content h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .warning-content p {
+            color: #856404;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .examples-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .back-button {
+                position: static;
+                margin-bottom: 20px;
+                align-self: flex-start;
+            }
+        }
+    </style>    <div class="container">
+        <!-- Modal für Aktuelle Beispiele -->
+        <div class="modal-overlay active" id="modal-examples">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">🌍 Aktuelle Beispiele von Zensur</h2>
+                    <button class="close-btn" onclick="goBackToMain()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Header -->
+                    <div class="header">
+                        <h1>🌍 Aktuelle Beispiele von Zensur</h1>
+                        <p>Wie Regierungen und Konzerne weltweit die freie Meinungsäußerung einschränken</p>
+                    </div>
+
+        <!-- Examples Grid -->
+        <div class="examples-grid">
+            <div class="example-card china">
+                <div class="example-header">
+                    <span class="example-flag">🇨🇳</span>
+                    <div>
+                        <h3 class="example-title">Great Firewall</h3>
+                        <p class="example-subtitle">China • 2025</p>
+                    </div>
+                </div>
+                <div class="example-content">
+                    Das weltweit fortschrittlichste Zensursystem blockiert über 10.000 Websites und überwacht alle digitalen Aktivitäten von 1,4 Milliarden Menschen in Echtzeit.
+                </div>
+                <div class="example-stats">
+                    <ul>
+                        <li>Google, Facebook, Twitter komplett gesperrt</li>
+                        <li>KI-gestützte Inhaltserkennung in Millisekunden</li>
+                        <li>Social Credit System bewertet alle Bürger</li>
+                        <li>Über 50.000 Internet-Polizisten im Einsatz</li>
+                    </ul>
+                </div>
+                <span class="impact-badge">1.4 Mrd. Menschen betroffen</span>
+            </div>
+
+            <div class="example-card usa">
+                <div class="example-header">
+                    <span class="example-flag">🇺🇸</span>
+                    <div>
+                        <h3 class="example-title">Schulbuchverbote</h3>
+                        <p class="example-subtitle">USA • 2024-2025</p>
+                    </div>
+                </div>
+                <div class="example-content">
+                    Über 10.000 Bücher wurden aus amerikanischen Schulbibliotheken entfernt. Besonders betroffen sind Werke zu LGBTQ+-Themen, Rassismus und kritischer Geschichtsbetrachtung.
+                </div>
+                <div class="example-stats">
+                    <ul>
+                        <li>"Gender Queer" - meistverbotenes Buch</li>
+                        <li>"Maus" (Holocaust-Comic) zensiert</li>
+                        <li>"The Hate U Give" wegen Polizeikritik verboten</li>
+                        <li>5.000 Schulbezirke betroffen</li>
+                    </ul>
+                </div>
+                <span class="impact-badge">Millionen von Schülern betroffen</span>
+            </div>
+
+            <div class="example-card russia">
+                <div class="example-header">
+                    <span class="example-flag">🇷🇺</span>
+                    <div>
+                        <h3 class="example-title">Kriegszensur</h3>
+                        <p class="example-subtitle">Russland • 2022-2025</p>
+                    </div>
+                </div>
+                <div class="example-content">
+                    Drakonische Mediengesetze machen bereits das Wort "Krieg" für die Ukraine-Invasion strafbar. Bis zu 15 Jahre Haft für "Fake News" über das Militär.
+                </div>
+                <div class="example-stats">
+                    <ul>
+                        <li>Facebook, Instagram, Twitter gesperrt</li>
+                        <li>Unabhängige Medien als "ausländische Agenten"</li>
+                        <li>Tausende Verhaftungen wegen Anti-Kriegs-Posts</li>
+                        <li>VPN-Nutzung wird kriminalisiert</li>
+                    </ul>
+                </div>
+                <span class="impact-badge">144 Mio. Menschen betroffen</span>
+            </div>
+
+            <div class="example-card iran">
+                <div class="example-header">
+                    <span class="example-flag">🇮🇷</span>
+                    <div>
+                        <h3 class="example-title">Internet-Shutdowns</h3>
+                        <p class="example-subtitle">Iran • 2024-2025</p>
+                    </div>
+                </div>
+                <div class="example-content">
+                    Komplette Internet-Abschaltungen während Protesten. WhatsApp, Telegram und Instagram dauerhaft gesperrt. Todesstrafe für Online-Aktivismus möglich.
+                </div>
+                <div class="example-stats">
+                    <ul>
+                        <li>Komplette Internet-Blackouts bei Protesten</li>
+                        <li>Starlink-Satelliten werden gestört</li>
+                        <li>VPN-Server systematisch blockiert</li>
+                        <li>Todesstrafe für "Korruption auf Erden"</li>
+                    </ul>
+                </div>
+                <span class="impact-badge">84 Mio. Menschen betroffen</span>
+            </div>
+
+            <div class="example-card global">
+                <div class="example-header">
+                    <span class="example-flag">🏢</span>
+                    <div>
+                        <h3 class="example-title">Big Tech Zensur</h3>
+                        <p class="example-subtitle">Global • 2024-2025</p>
+                    </div>
+                </div>
+                <div class="example-content">
+                    Große Tech-Konzerne entfernen Inhalte ohne transparente Begründung. Shadow-Banning macht Inhalte unsichtbar, ohne dass Nutzer es merken.
+                </div>
+                <div class="example-stats">
+                    <ul>
+                        <li>YouTube: Automatische KI-Löschung</li>
+                        <li>Meta: Faktenchecker mit politischer Agenda</li>
+                        <li>Twitter/X: Willkürliche Suspendierungen</li>
+                        <li>TikTok: Algorithmus bevorzugt bestimmte Meinungen</li>
+                    </ul>
+                </div>
+                <span class="impact-badge">Milliarden von Nutzern betroffen</span>
+            </div>
+
+            <div class="example-card turkey">
+                <div class="example-header">
+                    <span class="example-flag">🇹🇷</span>
+                    <div>
+                        <h3 class="example-title">Social Media Kontrolle</h3>
+                        <p class="example-subtitle">Türkei • 2024-2025</p>
+                    </div>
+                </div>
+                <div class="example-content">
+                    Social Media Konzerne müssen lokale Vertreter ernennen und alle Nutzerdaten in der Türkei speichern. Wikipedia war 2 Jahre komplett gesperrt.
+                </div>
+                <div class="example-stats">
+                    <ul>
+                        <li>Über 245.000 blockierte Websites</li>
+                        <li>Direkte Content-Löschung durch Regierung</li>
+                        <li>Inhaftierung von Journalisten</li>
+                        <li>Schließung von Medienunternehmen</li>
+                    </ul>
+                </div>
+                <span class="impact-badge">84 Mio. Menschen betroffen</span>
+            </div>
+        </div>
+
+        <!-- Techniques Section -->
+        <div class="info-section">
+            <h2>🔧 Techniken der digitalen Zensur</h2>
+            <ul>
+                <li>
+                    <span class="technique-icon">1</span>
+                    <div>
+                        <strong>DNS-Blocking:</strong> Websites werden durch Manipulation der Namensauflösung blockiert - die einfachste Form der Zensur
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">2</span>
+                    <div>
+                        <strong>Deep Packet Inspection:</strong> Inhalte werden in Echtzeit analysiert und gefiltert, selbst verschlüsselte Verbindungen können erkannt werden
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">3</span>
+                    <div>
+                        <strong>Shadow-Banning:</strong> Inhalte werden versteckt, ohne dass Nutzer es merken - besonders perfide Form der Zensur
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">4</span>
+                    <div>
+                        <strong>Throttling:</strong> Verlangsamung der Internetgeschwindigkeit für bestimmte Dienste bis zur Unbrauchbarkeit
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">5</span>
+                    <div>
+                        <strong>AI-Content-Filtering:</strong> KI-gestützte Erkennung und Löschung von Inhalten in Millisekunden
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">6</span>
+                    <div>
+                        <strong>Geo-Blocking:</strong> Regionale Beschränkungen für Inhalte basierend auf IP-Adressen
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Countermeasures Section -->
+        <div class="info-section">
+            <h2>🛡️ Umgehungsmöglichkeiten & Widerstand</h2>
+            <ul>
+                <li>
+                    <span class="technique-icon">V</span>
+                    <div>
+                        <strong>VPN (Virtual Private Network):</strong> Verschlüsselung und Umleitung des Internetverkehrs über andere Länder
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">T</span>
+                    <div>
+                        <strong>Tor-Browser:</strong> Anonymisierung durch mehrfache Verschlüsselung - das "Darknet" für alle
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">P</span>
+                    <div>
+                        <strong>Proxy-Server:</strong> Umleitung über zwischengeschaltete Server, weniger sicher als VPN
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">M</span>
+                    <div>
+                        <strong>Mirror-Sites:</strong> Kopien gesperrter Websites unter anderen Adressen
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">N</span>
+                    <div>
+                        <strong>Mesh-Networks:</strong> Dezentrale Netzwerke ohne zentrale Kontrolle - die Zukunft der freien Kommunikation
+                    </div>
+                </li>
+                <li>
+                    <span class="technique-icon">S</span>
+                    <div>
+                        <strong>Steganographie:</strong> Verstecken von Nachrichten in Bildern oder anderen harmlosen Dateien
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Warning Box -->
+        <div class="warning-box">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-content">
+                <h4>Wichtiger Sicherheitshinweis</h4>
+                <p>
+                    Die Nutzung von Umgehungstools kann in autoritären Ländern zu schweren Strafen bis hin zur Todesstrafe führen. 
+                    In China, Iran, Nordkorea und anderen Diktaturen riskieren Menschen ihr Leben für freie Information. 
+                    Informieren Sie sich über lokale Gesetze und treffen Sie entsprechende Vorsichtsmaßnahmen.
+                </p>                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Zurück zur Hauptseite
+        window.goBackToMain = function() {
+            window.location.href = 'zensur.html';
+        };
+
+        // Smooth scrolling für interne Links
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Examples Seite geladen');
+            
+            // Scroll-Animation für Cards
+            const cards = document.querySelectorAll('.example-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+            
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pressefreiheitsindex 2025 - Weltkarte</title>
+    <!-- Leaflet CSS und JS für OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 95vw;
+            max-height: 95vh;
+            width: 95vw;
+            height: 95vh;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            height: calc(95vh - 80px);
+            display: flex;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        /* Map specific styles */
+        #pressmap {
+            flex: 1;
+            background: white;
+        }
+
+        #modal-worldmap .modal-body > div {
+            overflow: hidden;
+        }
+
+        #modal-worldmap .globe-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #modal-worldmap .modal-body ul li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        #modal-worldmap .modal-body h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        #modal-worldmap .modal-body > div > div {
+            padding: 20px;
+        }
+    </style>
+
+    <div class="container">
+        <!-- Modal für Weltkarte -->
+        <div class="modal-overlay active" id="modal-worldmap">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">🗺️ Pressefreiheitsindex 2025 - Reporter ohne Grenzen</h2>
+                    <button class="close-btn" onclick="goBackToMain()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Karte links -->
+                    <div style="flex: 2; background: #f8f9fa; display: flex; flex-direction: column;">
+                        <div style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 15px; text-align: center;">
+                            <h3 style="margin: 0; font-size: 1.2rem;">Interaktive Weltkarte</h3>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Klicke auf Länder für Details</p>
+                        </div>
+                        <div id="pressmap" style="flex: 1; background: white;"></div>
+                    </div>
+                    <!-- Rangliste rechts -->
+                    <div style="width: 400px; background: white; display: flex; flex-direction: column; border-left: 1px solid #ddd;">
+                        <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 15px; text-align: center;">
+                            <h3 style="margin: 0; font-size: 1.2rem;">📊 Vollständige Rangliste</h3>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Alle 180 Länder</p>
+                        </div>
+                        <div style="flex: 1; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #f8f9fa; position: sticky; top: 0;">
+                                        <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; width: 50px;">Rang</th>
+                                        <th style="padding: 10px 8px; text-align: left; font-size: 0.85rem;">Land</th>
+                                        <th style="padding: 10px 8px; text-align: center; font-size: 0.85rem; width: 60px;">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ranking-tbody-modal">
+                                    <!-- Wird mit JavaScript gefüllt -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Globale Variablen
+        let pressMap = null;
+
+        // Länder-Daten für die Pressefreiheitskarte
+        const countries = [
+                      { name: 'Norwegen', lat: 60.472, lng: 8.4689, score: 7.82, color: '#27ae60', rank: 1,
+      bannedBooks: ['The Anarchist Cookbook (Bombenanleitungen)', 'Mein Kampf (Adolf Hitler) - nur kommentierte Version erlaubt', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Dänemark', lat: 56.2639, lng: 9.5018, score: 8.40, color: '#27ae60', rank: 2,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - Originalversion verboten', 'The Turner Diaries (William Luther Pierce)', 'Mujahideen Poisons Handbook'] },
+    { name: 'Schweden', lat: 60.1282, lng: 18.6435, score: 8.31, color: '#27ae60', rank: 3,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - nur kommentierte Version erlaubt', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion (Antisemitismus)'] },
+    { name: 'Finnland', lat: 61.9241, lng: 25.7482, score: 9.25, color: '#27ae60', rank: 4,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - nur kommentierte Version', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Niederlande', lat: 52.1326, lng: 5.2913, score: 10.74, color: '#27ae60', rank: 5,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - historisch verboten bis 2015', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion'] },
+    { name: 'Estland', lat: 58.5953, lng: 25.0136, score: 11.40, color: '#27ae60', rank: 6,
+      bannedBooks: ['Der Stürmer (Nazi-Propagandazeitung)', 'Sowjetische Kriegspropaganda (u.a. Stalin-Reden)', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Portugal', lat: 39.3999, lng: -8.2245, score: 11.78, color: '#27ae60', rank: 7,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)', 'Hitler\'s Table Talk (Adolf Hitler) - unkommentiert'] },
+    { name: 'Irland', lat: 53.1424, lng: -7.6921, score: 12.33, color: '#27ae60', rank: 8,
+      bannedBooks: ['The Mujahideen Poisons Handbook', 'Blasphemous Rumours (Anti-Religion Essays)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Österreich', lat: 47.5162, lng: 14.5501, score: 13.18, color: '#27ae60', rank: 9,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - unkommentierte Fassung verboten', 'Der Mythus des 20. Jahrhunderts (Alfred Rosenberg)', 'Did Six Million Really Die? (Holocaustleugnung)'] },
+    { name: 'Deutschland', lat: 51.1657, lng: 10.4515, score: 15.24, color: '#27ae60', rank: 10,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - nur kommentierte Version seit 2016', 'Der Mythus des 20. Jahrhunderts (Alfred Rosenberg)', 'Horst-Wessel-Lied und andere NS-Propaganda', 'Scientology-Schriften (einige Bundesländer)'] },
+    { name: 'Schweiz', lat: 46.1850, lng: 8.1268, score: 15.50, color: '#27ae60', rank: 11,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) - nicht frei verkäuflich', 'Did Six Million Really Die? (Holocaustleugnung)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Belgien', lat: 50.5039, lng: 4.4699, score: 16.12, color: '#27ae60', rank: 12,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Protocols of the Elders of Zion', 'Mujahideen Poisons Handbook'] },
+    { name: 'Slowenien', lat: 46.1512, lng: 14.9955, score: 18.85, color: '#27ae60', rank: 13,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Communist Manifesto - kommentierte Version erlaubt', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Tschechien', lat: 49.8175, lng: 15.4730, score: 19.95, color: '#27ae60', rank: 14,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Sowjetische Kriegspropaganda', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Luxemburg', lat: 49.8153, lng: 6.1296, score: 20.12, color: '#27ae60', rank: 15,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Did Six Million Really Die? (Holocaustleugnung)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Island', lat: 64.9631, lng: -19.0208, score: 16.88, color: '#27ae60', rank: 16,
+      bannedBooks: ['The Mujahideen Poisons Handbook', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Neuseeland', lat: -40.9006, lng: 174.8860, score: 19.90, color: '#27ae60', rank: 17,
+      bannedBooks: ['The Great Replacement (Christchurch-Manifest)', 'The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Kanada', lat: 56.1304, lng: -106.3468, score: 18.64, color: '#27ae60', rank: 18,
+      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion'] },
+    { name: 'Australien', lat: -25.2744, lng: 133.7751, score: 19.12, color: '#27ae60', rank: 19,
+      bannedBooks: ['The Great Replacement (Christchurch-Manifest)', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Slowakei', lat: 48.669, lng: 19.699, score: 20.01, color: '#27ae60', rank: 20,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion'] },
+    { name: 'Frankreich', lat: 46.6034, lng: 1.8883, score: 21.16, color: '#2ecc71', rank: 21,
+      bannedBooks: ['Did Six Million Really Die? (Holocaustleugnung)', 'The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Spanien', lat: 40.4637, lng: -3.7492, score: 22.85, color: '#2ecc71', rank: 22,
+      bannedBooks: ['Francisco Franco - Apologia Bücher', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Vereinigtes Königreich', lat: 55.3781, lng: -3.4360, score: 23.17, color: '#2ecc71', rank: 23,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Italien', lat: 41.8719, lng: 12.5674, score: 24.52, color: '#f39c12', rank: 24,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'La Difesa della Razza (Faschistische Zeitschrift)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Litauen', lat: 55.1694, lng: 23.8813, score: 25.89, color: '#f39c12', rank: 25,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Sowjetische Propagandabücher (z.B. Stalin)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Lettland', lat: 56.8796, lng: 24.6032, score: 26.73, color: '#f39c12', rank: 26,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)', 'Sowjetische Propaganda-Literatur'] },
+    { name: 'Zypern', lat: 35.1264, lng: 33.4299, score: 27.01, color: '#f39c12', rank: 27,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Jamaika', lat: 18.1096, lng: -77.2975, score: 28.37, color: '#f39c12', rank: 28,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Protocols of the Elders of Zion', 'Sexually Explicit Literature (z. B. The Story of O)'] },
+    { name: 'Samoa', lat: -13.7590, lng: -172.1046, score: 28.78, color: '#f39c12', rank: 29,
+      bannedBooks: ['Fifty Shades of Grey (E. L. James)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Costa Rica', lat: 9.7489, lng: -83.7534, score: 29.51, color: '#f39c12', rank: 30,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Namibia', lat: -22.9576, lng: 18.4904, score: 29.63, color: '#f39c12', rank: 31,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'South West Africa People\'s Organization (Opposition Pamphlets)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Südafrika', lat: -30.5595, lng: 22.9375, score: 30.22, color: '#f39c12', rank: 32,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'Kommunistische Literatur in Apartheidzeiten (z. B. The Communist Manifesto)'] },
+    { name: 'Seychellen', lat: -4.6796, lng: 55.4920, score: 30.97, color: '#f39c12', rank: 33,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)', 'Extremistische religiöse Literatur'] },
+    { name: 'Trinidad und Tobago', lat: 10.6918, lng: -61.2225, score: 31.45, color: '#f39c12', rank: 34,
+      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Barbados', lat: 13.1939, lng: -59.5432, score: 31.97, color: '#f39c12', rank: 35,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)', 'Obszöne Literatur (regional verboten)'] },
+    { name: 'Chile', lat: -35.6751, lng: -71.5430, score: 32.81, color: '#f39c12', rank: 36,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Bücher zur Pinochet-Kritik in der Diktatur', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Uruguay', lat: -32.5228, lng: -55.7658, score: 33.18, color: '#f39c12', rank: 37,
+      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)', 'Sexuelle Aufklärungsschriften (zeitweise zensiert)'] },
+    { name: 'Suriname', lat: 3.9193, lng: -56.0278, score: 33.64, color: '#f39c12', rank: 38,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Ghana', lat: 7.9465, lng: -1.0232, score: 34.22, color: '#f39c12', rank: 39,
+      bannedBooks: ['Kommunistische Literatur in Kolonialzeit', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Botswana', lat: -22.3285, lng: 24.6849, score: 34.55, color: '#f39c12', rank: 40,
+      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook'] },
+                { name: 'Namibia', lat: -22.9576, lng: 18.4904, score: 35.10, color: '#f39c12', rank: 41,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)', 'Sowjetische Propagandaliteratur (Kolonialzeit)'] },
+    { name: 'Dominica', lat: 15.414999, lng: -61.370976, score: 35.64, color: '#f39c12', rank: 42,
+      bannedBooks: ['Obszöne Literatur (z. B. Naked Lunch von William S. Burroughs)', 'The Anarchist Cookbook (William Powell)', 'The Mujahideen Poisons Handbook'] },
+    { name: 'Grenada', lat: 12.1165, lng: -61.679, score: 36.12, color: '#f39c12', rank: 43,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Kommunistische Schriften (in der US-Besatzungszeit)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Mongolei', lat: 46.8625, lng: 103.8467, score: 36.90, color: '#f39c12', rank: 44,
+      bannedBooks: ['Chinesische pro-kommunistische Literatur (zeitweise)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Bhutan', lat: 27.5142, lng: 90.4336, score: 37.15, color: '#f39c12', rank: 45,
+      bannedBooks: ['Anti-buddhistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Georgien', lat: 42.3154, lng: 43.3569, score: 38.09, color: '#f39c12', rank: 46,
+      bannedBooks: ['Russische Nationalistenliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Taiwan', lat: 23.6978, lng: 120.9605, score: 39.25, color: '#f39c12', rank: 47,
+      bannedBooks: ['Pro-kommunistische chinesische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Kroatien', lat: 45.1, lng: 15.2, score: 39.87, color: '#f39c12', rank: 48,
+      bannedBooks: ['Kommunistische Jugoslawien-Literatur (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Japan', lat: 36.2048, lng: 138.2529, score: 40.25, color: '#f39c12', rank: 49,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Extreme Pornographie (z. B. Werke von Suehiro Maruo, zensiert)', 'Mein Kampf (Adolf Hitler) – unkommentiert'] },
+    { name: 'USA', lat: 37.0902, lng: -95.7129, score: 40.85, color: '#f39c12', rank: 50,
+      bannedBooks: ['Gender Queer (Maia Kobabe) – in Schulbezirken verboten', 'Maus (Art Spiegelman) – regional zensiert', 'The Hate U Give (Angie Thomas) – Schulverbote'] },
+    { name: 'Fidschi', lat: -17.7134, lng: 178.065, score: 41.76, color: '#f39c12', rank: 51,
+      bannedBooks: ['Oppositionelle politische Schriften während der Militärherrschaft', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Bosnien und Herzegowina', lat: 43.9159, lng: 17.6791, score: 42.40, color: '#f39c12', rank: 52,
+      bannedBooks: ['Nationalistische Hetzschriften (beider Seiten)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Papua-Neuguinea', lat: -6.314993, lng: 143.95555, score: 42.89, color: '#f39c12', rank: 53,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)', 'Satanistische Literatur'] },
+    { name: 'Madagaskar', lat: -18.7669, lng: 46.8691, score: 43.28, color: '#f39c12', rank: 54,
+      bannedBooks: ['Kommunistische Literatur (während Kolonialherrschaft)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Albanien', lat: 41.1533, lng: 20.1683, score: 44.63, color: '#f39c12', rank: 55,
+      bannedBooks: ['Religiöse Literatur während Enver Hoxha-Diktatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Argentinien', lat: -38.4161, lng: -63.6167, score: 45.12, color: '#f39c12', rank: 56,
+      bannedBooks: ['Literatur der Militärdiktatur-Gegner (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Indien', lat: 20.5937, lng: 78.9629, score: 46.14, color: '#f39c12', rank: 57,
+      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Nine Hours to Rama (Stanley Wolpert)', 'Understanding Islam through Hadis (Ram Swarup)'] },
+    { name: 'Indonesien', lat: -0.7893, lng: 113.9213, score: 46.78, color: '#f39c12', rank: 58,
+      bannedBooks: ['Kommunistische Literatur (z. B. The Communist Manifesto)', 'Mein Kampf (Adolf Hitler)', 'LGBTQ+-Literatur in Schulen'] },
+    { name: 'Malaysia', lat: 4.2105, lng: 101.9758, score: 47.53, color: '#f39c12', rank: 59,
+      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)', 'Desire (Haruki Murakami) – zensiert'] },
+    { name: 'Brasilien', lat: -14.235, lng: -51.9253, score: 48.09, color: '#f39c12', rank: 60,
+      bannedBooks: ['Mein Kampf (Adolf Hitler) – historisch verboten', 'LGBTQ+-Jugendbücher (in Bundesstaaten zensiert)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Ecuador', lat: -1.8312, lng: -78.1834, score: 48.72, color: '#f39c12', rank: 61,
+      bannedBooks: ['Oppositionelle Literatur während Correa-Regierung', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Paraguay', lat: -23.4425, lng: -58.4438, score: 49.15, color: '#f39c12', rank: 62,
+      bannedBooks: ['Kommunistische Literatur (Stronistenzeit)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Peru', lat: -9.1899, lng: -75.0152, score: 49.62, color: '#f39c12', rank: 63,
+      bannedBooks: ['Sendero Luminoso Propagandaschriften', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'El Salvador', lat: 13.7942, lng: -88.8965, score: 50.27, color: '#e67e22', rank: 64,
+      bannedBooks: ['Revolutionäre Literatur (Bürgerkriegszeit)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Guatemala', lat: 15.7835, lng: -90.2308, score: 50.91, color: '#e67e22', rank: 65,
+      bannedBooks: ['Literatur indigener Bewegungen (historisch zensiert)', 'Mein Kampf (Adolf Hitler)', 'Kommunistische Manifeste'] },
+         { name: 'Kenia', lat: -0.0236, lng: 37.9062, score: 51.22, color: '#e67e22', rank: 66,
+      bannedBooks: ['Mein Kampf (Adolf Hitler)', 'Kommunistische Schriften (Kolonialzeit)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Nepal', lat: 28.3949, lng: 84.1240, score: 51.93, color: '#e67e22', rank: 67,
+      bannedBooks: ['Anti-Monarchie Literatur (historisch)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Tunesien', lat: 33.8869, lng: 9.5375, score: 52.74, color: '#e67e22', rank: 68,
+      bannedBooks: ['Islamkritische Bücher (z. B. The Satanic Verses)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Senegal', lat: 14.4974, lng: -14.4524, score: 53.61, color: '#e67e22', rank: 69,
+      bannedBooks: ['Französische Kolonialkritik (historisch zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Serbien', lat: 44.0165, lng: 21.0059, score: 54.25, color: '#e67e22', rank: 70,
+      bannedBooks: ['Jugoslawien-kritische Literatur (historisch)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Moldau', lat: 47.4116, lng: 28.3699, score: 54.96, color: '#e67e22', rank: 71,
+      bannedBooks: ['Russlandkritische Bücher (zeitweise)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Nordmazedonien', lat: 41.6086, lng: 21.7453, score: 55.48, color: '#e67e22', rank: 72,
+      bannedBooks: ['Nationalistische griechische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Serbien (Kosovo)', lat: 42.6026, lng: 20.9020, score: 56.21, color: '#e67e22', rank: 73,
+      bannedBooks: ['Serbische Nationalpropaganda', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Ukraine', lat: 48.3794, lng: 31.1656, score: 56.82, color: '#e67e22', rank: 74,
+      bannedBooks: ['Russische Propagandaschriften', 'Kommunistische Manifeste', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Angola', lat: -11.2027, lng: 17.8739, score: 57.41, color: '#e67e22', rank: 75,
+      bannedBooks: ['Portugiesische Kolonialliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },    { name: 'Russland', lat: 61.5240, lng: 105.3188, score: 43.42, color: '#e74c3c', rank: 148,
+      bannedBooks: ['1984 (George Orwell)', 'Animal Farm (George Orwell)', 'The Gulag Archipelago (Alexander Solzhenitsyn)', 'Alexei Nawalny – Biografien und Schriften'] },
+    { name: 'Armenien', lat: 40.0691, lng: 45.0382, score: 58.20, color: '#e67e22', rank: 76,
+      bannedBooks: ['Aserbaidschanische Nationalpropaganda', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Aserbaidschan', lat: 40.1431, lng: 47.5769, score: 59.37, color: '#e67e22', rank: 78,
+      bannedBooks: ['Armenisch-nationalistische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Katar', lat: 25.3548, lng: 51.1839, score: 59.93, color: '#e67e22', rank: 79,
+      bannedBooks: ['LGBTQ+-Literatur', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Marokko', lat: 31.7917, lng: -7.0926, score: 60.88, color: '#e67e22', rank: 80,
+      bannedBooks: ['Westliche Feminismus-Literatur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Jordanien', lat: 30.5852, lng: 36.2384, score: 61.12, color: '#e67e22', rank: 81,
+      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Pro-israelische Literatur', 'Mein Kampf (Adolf Hitler)'] },    { name: 'Iran', lat: 32.4279, lng: 53.6880, score: 73.40, color: '#8b0000', rank: 174,
+      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Persepolis (Marjane Satrapi)', 'Reading Lolita in Tehran (Azar Nafisi)', 'The Kite Runner (Khaled Hosseini)'] },
+    { name: 'Libanon', lat: 33.8547, lng: 35.8623, score: 62.11, color: '#e67e22', rank: 84,
+      bannedBooks: ['Israelische Autoren (z. B. Amos Oz)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kuwait', lat: 29.3759, lng: 47.9774, score: 63.25, color: '#e67e22', rank: 85,
+      bannedBooks: ['LGBTQ+-Literatur', 'Erotische Romane (z. B. Fifty Shades of Grey)', 'Mein Kampf (Adolf Hitler)'] },
+        { name: 'Niger', lat: 17.6078, lng: 8.0817, score: 63.95, color: '#e67e22', rank: 86,
+      bannedBooks: ['Französisch-kritische Kolonialliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Nigeria', lat: 9.0820, lng: 8.6753, score: 64.38, color: '#e67e22', rank: 87,
+      bannedBooks: ['Islamkritische Literatur', 'Biafra-Sezessionsliteratur (historisch)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Thailand', lat: 15.8700, lng: 100.9925, score: 64.91, color: '#e67e22', rank: 88,
+      bannedBooks: ['Royalkritische Literatur (z. B. The King Never Smiles)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Palästinensische Gebiete', lat: 31.9522, lng: 35.2332, score: 65.34, color: '#e67e22', rank: 89,
+      bannedBooks: ['Pro-israelische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Uganda', lat: 1.3733, lng: 32.2903, score: 65.87, color: '#e67e22', rank: 90,
+      bannedBooks: ['Homosexualität thematisierende Literatur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Kolumbien', lat: 4.5709, lng: -74.2973, score: 66.19, color: '#e67e22', rank: 91,
+      bannedBooks: ['Guerilla-nahe Literatur (FARC bezogen)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Indien (Jammu & Kashmir)', lat: 33.7782, lng: 76.5762, score: 66.76, color: '#e67e22', rank: 92,
+      bannedBooks: ['Separatistenliteratur', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Tansania', lat: -6.3690, lng: 34.8888, score: 67.11, color: '#e67e22', rank: 93,
+      bannedBooks: ['LGBTQ+-Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Pakistan', lat: 30.3753, lng: 69.3451, score: 67.82, color: '#e67e22', rank: 94,
+      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Ahmadiyya-Literatur', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Philippinen', lat: 13.4100, lng: 122.5600, score: 68.45, color: '#e67e22', rank: 95,
+      bannedBooks: ['Kommunistische Literatur (CPP-NPA bezogen)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Algerien', lat: 28.0339, lng: 1.6596, score: 69.18, color: '#e67e22', rank: 96,
+      bannedBooks: ['Französische Kolonialkritik', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Venezuela', lat: 6.4238, lng: -66.5897, score: 69.89, color: '#e67e22', rank: 97,
+      bannedBooks: ['Regierungskritische Literatur (z. B. Biografien oppositioneller Politiker)', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Sudan', lat: 12.8628, lng: 30.2176, score: 70.45, color: '#c0392b', rank: 98,
+      bannedBooks: ['Christliche Missionsliteratur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Äthiopien', lat: 9.1450, lng: 40.4897, score: 71.14, color: '#c0392b', rank: 99,
+      bannedBooks: ['Tigray-Propagandaschriften', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Bangladesch', lat: 23.6850, lng: 90.3563, score: 71.77, color: '#c0392b', rank: 100,
+      bannedBooks: ['Islamkritische Werke (z. B. Taslima Nasreen)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Afghanistan', lat: 33.9391, lng: 67.7100, score: 72.43, color: '#c0392b', rank: 101,
+      bannedBooks: ['Westliche Literatur (z. B. Schulbücher für Mädchen)', 'The Satanic Verses (Salman Rushdie)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Jemen', lat: 15.5527, lng: 48.5164, score: 73.02, color: '#c0392b', rank: 102,
+      bannedBooks: ['Israelisch-jüdische Literatur', 'Feministische Schriften', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Türkei', lat: 38.9637, lng: 35.2433, score: 73.91, color: '#c0392b', rank: 103,
+      bannedBooks: ['Kurdistische Werke (z. B. Abdullah Öcalan)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Myanmar', lat: 21.9162, lng: 95.9560, score: 74.50, color: '#c0392b', rank: 104,
+      bannedBooks: ['Rohingya-Menschenrechtsberichte', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kambodscha', lat: 12.5657, lng: 104.9910, score: 75.01, color: '#c0392b', rank: 105,
+      bannedBooks: ['Khmer Rouge-Kritik', 'Oppositionelle Politikliteratur', 'The Anarchist Cookbook (William Powell)'] },
+          { name: 'Laos', lat: 19.8563, lng: 102.4955, score: 75.54, color: '#c0392b', rank: 106,
+      bannedBooks: ['Anti-kommunistische Literatur', 'Berichte zu Menschenrechten', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Vietnam', lat: 14.0583, lng: 108.2772, score: 76.18, color: '#c0392b', rank: 107,
+      bannedBooks: ['Kommunismuskritische Werke', 'Pro-demokratische Literatur (z. B. über Dissidenten)', 'Mein Kampf (Adolf Hitler)'] },    { name: 'China', lat: 35.8617, lng: 104.1954, score: 73.07, color: '#8b0000', rank: 173,
+      bannedBooks: ['1984 (George Orwell)', 'Animal Farm (George Orwell)', 'The Tiananmen Papers', 'Wild Swans (Jung Chang)'] },{ name: 'Nordkorea', lat: 40.3399, lng: 127.5101, score: 83.90, color: '#8b0000', rank: 178,
+      bannedBooks: ['Jegliche westliche Literatur', 'Die Bibel', 'Berichte über Kim-Regime', 'Harry Potter (westlicher Einfluss)'] },
+    { name: 'Saudi-Arabien', lat: 23.8859, lng: 45.0792, score: 79.50, color: '#8b0000', rank: 110,
+      bannedBooks: ['The Satanic Verses (Salman Rushdie)', 'Feministische Literatur', 'LGBTQ+-Literatur', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Libyen', lat: 26.3351, lng: 17.2283, score: 80.03, color: '#8b0000', rank: 111,
+      bannedBooks: ['Anti-Gaddafi-Literatur (historisch)', 'Israelische Publikationen', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Syrien', lat: 34.8021, lng: 38.9968, score: 81.62, color: '#8b0000', rank: 112,
+      bannedBooks: ['Regimekritische Schriften', 'Islamkritische Literatur', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Turkmenistan', lat: 38.9697, lng: 59.5563, score: 82.35, color: '#8b0000', rank: 113,
+      bannedBooks: ['Oppositionelle Literatur', 'Berichte über Präsident Berdimuhamedow', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Usbekistan', lat: 41.3775, lng: 64.5853, score: 82.91, color: '#8b0000', rank: 114,
+      bannedBooks: ['Islamistische Literatur', 'Kritik an Islam Karimow', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Kasachstan', lat: 48.0196, lng: 66.9237, score: 83.44, color: '#8b0000', rank: 115,
+      bannedBooks: ['Regierungskritische Schriften', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Eritrea', lat: 15.1794, lng: 39.7823, score: 83.96, color: '#8b0000', rank: 116,
+      bannedBooks: ['Pressefreiheitspublikationen', 'Religiöse Literatur ohne Registrierung', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Tschad', lat: 15.4542, lng: 18.7322, score: 84.31, color: '#8b0000', rank: 117,
+      bannedBooks: ['Islamkritische Texte', 'Mein Kampf (Adolf Hitler)', 'Protestliteratur'] },
+    { name: 'Zentralafrikanische Republik', lat: 6.6111, lng: 20.9394, score: 84.94, color: '#8b0000', rank: 118,
+      bannedBooks: ['Milizenbezogene Literatur', 'Internationale Menschenrechtsberichte', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Kongo (Republik)', lat: -0.2280, lng: 15.8277, score: 85.52, color: '#8b0000', rank: 119,
+      bannedBooks: ['Kriegsverbrechensberichte', 'Politische Satire', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Demokratische Republik Kongo', lat: -4.0383, lng: 21.7587, score: 86.09, color: '#8b0000', rank: 120,
+      bannedBooks: ['UN-Kritikberichte', 'Rebellenpropaganda', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Somalia', lat: 5.1521, lng: 46.1996, score: 87.62, color: '#8b0000', rank: 121,
+      bannedBooks: ['Nicht-islamische Literatur', 'Frauengleichberechtigungstexte', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Sudan (Süden)', lat: 6.8770, lng: 31.3070, score: 88.33, color: '#8b0000', rank: 122,
+      bannedBooks: ['Oppositionsliteratur', 'Islamkritik', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Burundi', lat: -3.3731, lng: 29.9189, score: 89.17, color: '#8b0000', rank: 123,
+      bannedBooks: ['Kriegsverbrechen-Berichte', 'Politische Biografien', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Ruanda', lat: -1.9403, lng: 29.8739, score: 89.81, color: '#8b0000', rank: 124,
+      bannedBooks: ['Hutu-Propaganda (z. B. RTLM-Radiotranskripte)', 'Genozidleugnungsschriften', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Äquatorialguinea', lat: 1.6508, lng: 10.2679, score: 90.35, color: '#8b0000', rank: 125,
+      bannedBooks: ['Präsidentschaftskritik (Teodoro Obiang)', 'Menschenrechtsdokumentationen', 'The Turner Diaries (William Luther Pierce)'] },
+       { name: 'Gambia', lat: 13.4432, lng: -15.3101, score: 90.98, color: '#8b0000', rank: 126,
+      bannedBooks: ['Regierungskritische Publikationen (unter Jammeh)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Kamerun', lat: 7.3697, lng: 12.3547, score: 91.55, color: '#8b0000', rank: 127,
+      bannedBooks: ['Separatistische Literatur (Ambazonien)', 'Kritik an Paul Biya', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Guinea', lat: 9.9456, lng: -9.6966, score: 91.91, color: '#8b0000', rank: 128,
+      bannedBooks: ['Regierungskritische Literatur', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Togo', lat: 8.6195, lng: 0.8248, score: 92.42, color: '#8b0000', rank: 129,
+      bannedBooks: ['Anti-Gnassingbé-Literatur', 'Wahlmanipulationsberichte', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Simbabwe', lat: -19.0154, lng: 29.1549, score: 92.98, color: '#8b0000', rank: 130,
+      bannedBooks: ['Kritik an Mugabe-Regierung (historisch)', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Mauretanien', lat: 21.0079, lng: -10.9408, score: 93.51, color: '#8b0000', rank: 131,
+      bannedBooks: ['Islamkritische Literatur', 'Anti-Sklaverei-Literatur', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Gabun', lat: -0.8037, lng: 11.6094, score: 94.02, color: '#8b0000', rank: 132,
+      bannedBooks: ['Regierungskritische Publikationen', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kongo (Demokratische Republik)', lat: -4.0383, lng: 21.7587, score: 94.50, color: '#8b0000', rank: 133,
+      bannedBooks: ['UN-Berichte zu Rohstoffausbeutung', 'Rebellengruppenliteratur', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Malawi', lat: -13.2543, lng: 34.3015, score: 95.03, color: '#8b0000', rank: 134,
+      bannedBooks: ['Homosexualität thematisierende Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Mali', lat: 17.5707, lng: -3.9962, score: 95.47, color: '#8b0000', rank: 135,
+      bannedBooks: ['Jihadistische Literatur (z. B. AQIM bezogen)', 'Kritik an Übergangsregierung', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Burkina Faso', lat: 12.2383, lng: -1.5616, score: 96.04, color: '#8b0000', rank: 136,
+      bannedBooks: ['Islamistische und regierungskritische Literatur', 'The Anarchist Cookbook (William Powell)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Mosambik', lat: -18.6657, lng: 35.5296, score: 96.47, color: '#8b0000', rank: 137,
+      bannedBooks: ['Separatistische Literatur (Cabo Delgado)', 'Kritik an Regierung Nyusi', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Eswatini', lat: -26.5225, lng: 31.4659, score: 96.91, color: '#8b0000', rank: 138,
+      bannedBooks: ['Königskritische Literatur', 'Demokratiebewegungsschriften', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Lesotho', lat: -29.6099, lng: 28.2336, score: 97.36, color: '#8b0000', rank: 139,
+      bannedBooks: ['Kritik an Regierung und Monarchie', 'Oppositionsliteratur', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Sambia', lat: -13.1339, lng: 27.8493, score: 97.83, color: '#8b0000', rank: 140,
+      bannedBooks: ['Regierungskritische Berichte (Korruption)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Namibia', lat: -22.9576, lng: 18.4904, score: 98.18, color: '#8b0000', rank: 141,
+      bannedBooks: ['Apartheidskritik (historisch)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Botswana', lat: -22.3285, lng: 24.6849, score: 98.67, color: '#8b0000', rank: 142,
+      bannedBooks: ['LGBTQ+-Literatur (historisch)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Südafrika', lat: -30.5595, lng: 22.9375, score: 99.12, color: '#8b0000', rank: 143,
+      bannedBooks: ['Apartheidskritik (historisch)', 'Kommunistische Manifeste (historisch)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Madagaskar', lat: -18.7669, lng: 46.8691, score: 99.57, color: '#8b0000', rank: 144,
+      bannedBooks: ['Regierungskritik', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Komoren', lat: -11.6455, lng: 43.3333, score: 100.00, color: '#8b0000', rank: 145,
+      bannedBooks: ['Säkularistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+      { name: 'Seychellen', lat: -4.6796, lng: 55.492, score: 100.43, color: '#8b0000', rank: 146,
+      bannedBooks: ['Regierungskritik (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Mauritius', lat: -20.3484, lng: 57.5522, score: 100.88, color: '#8b0000', rank: 147,
+      bannedBooks: ['LGBTQ+-Literatur (bis 2023 eingeschränkt)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'São Tomé und Príncipe', lat: 0.1864, lng: 6.6131, score: 101.34, color: '#8b0000', rank: 148,
+      bannedBooks: ['Oppositionelle Literatur (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kap Verde', lat: 16.5388, lng: -23.0418, score: 101.82, color: '#8b0000', rank: 149,
+      bannedBooks: ['Kommunistische Literatur (Kolonialzeit)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Bahamas', lat: 25.0343, lng: -77.3963, score: 102.27, color: '#8b0000', rank: 150,
+      bannedBooks: ['LGBTQ+-Literatur (zeitweise zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Barbados', lat: 13.1939, lng: -59.5432, score: 102.74, color: '#8b0000', rank: 151,
+      bannedBooks: ['Kritik an Monarchie (vor 2021)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Grenada', lat: 12.1165, lng: -61.679, score: 103.21, color: '#8b0000', rank: 152,
+      bannedBooks: ['Marxistische Literatur (nach US-Invasion)', 'Mein Kampf (Adolf Hitler)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'St. Lucia', lat: 13.9094, lng: -60.9789, score: 103.66, color: '#8b0000', rank: 153,
+      bannedBooks: ['LGBTQ+-Themen in Schulen', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'St. Vincent und die Grenadinen', lat: 13.2528, lng: -61.1971, score: 104.13, color: '#8b0000', rank: 154,
+      bannedBooks: ['Literatur mit explizitem sexuellen Inhalt', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Antigua und Barbuda', lat: 17.0608, lng: -61.7964, score: 104.58, color: '#8b0000', rank: 155,
+      bannedBooks: ['Sexuelle Aufklärungsliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'St. Kitts und Nevis', lat: 17.3578, lng: -62.783, score: 105.02, color: '#8b0000', rank: 156,
+      bannedBooks: ['Regierungskritik (historisch zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Dominica', lat: 15.4150, lng: -61.3710, score: 105.45, color: '#8b0000', rank: 157,
+      bannedBooks: ['Protestliteratur gegen Regierung', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Trinidad und Tobago', lat: 10.6918, lng: -61.2225, score: 105.89, color: '#8b0000', rank: 158,
+      bannedBooks: ['Islamistische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Vatikanstadt', lat: 41.9029, lng: 12.4534, score: 108.55, color: '#8b0000', rank: 159,
+      bannedBooks: ['Kirchenkritische Literatur', 'LGBTQ+-Theologie', 'The Satanic Bible (Anton LaVey)'] },
+    { name: 'Palau', lat: 7.5149, lng: 134.5825, score: 109.00, color: '#8b0000', rank: 160,
+      bannedBooks: ['Pornografische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Tuvalu', lat: -7.1095, lng: 177.6493, score: 109.43, color: '#8b0000', rank: 161,
+      bannedBooks: ['Extremistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Nauru', lat: -0.5228, lng: 166.9315, score: 109.88, color: '#8b0000', rank: 162,
+      bannedBooks: ['Islamistische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Marshallinseln', lat: 7.1315, lng: 171.1845, score: 110.32, color: '#8b0000', rank: 163,
+      bannedBooks: ['Atomtest-Kritiken gegen USA', 'Mein Kampf (Adolf Hitler)', 'The Turner Diaries (William Luther Pierce)'] },
+    { name: 'Mikronesien', lat: 7.4256, lng: 150.5508, score: 110.75, color: '#8b0000', rank: 164,
+      bannedBooks: ['US-kritische Literatur (militärhistorisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kiribati', lat: -3.3704, lng: -168.734, score: 111.18, color: '#8b0000', rank: 165,
+      bannedBooks: ['Klimawandel-Panikliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Tonga', lat: -21.1789, lng: -175.1982, score: 111.63, color: '#8b0000', rank: 166,
+      bannedBooks: ['Regierungskritik an Monarchie', 'Pornografische Literatur', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Samoa', lat: -13.759, lng: -172.1046, score: 112.09, color: '#8b0000', rank: 167,
+      bannedBooks: ['LGBTQ+-Literatur (gesetzlich eingeschränkt)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Fidschi', lat: -17.7134, lng: 178.065, score: 112.52, color: '#8b0000', rank: 168,
+      bannedBooks: ['Militärkritische Publikationen (Putschzeit)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Vanuatu', lat: -15.3767, lng: 166.9592, score: 112.96, color: '#8b0000', rank: 169,
+      bannedBooks: ['Politische Unabhängigkeitskritik (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Salomonen', lat: -9.6457, lng: 160.1562, score: 113.43, color: '#8b0000', rank: 170,
+      bannedBooks: ['Gewaltverherrlichende Schriften', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Neuseeland', lat: -40.9006, lng: 174.886, score: 113.89, color: '#8b0000', rank: 171,
+      bannedBooks: ['The Turner Diaries (William Luther Pierce)', 'Into the River (Ted Dawe – vorübergehend)', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Australien', lat: -25.2744, lng: 133.7751, score: 114.33, color: '#8b0000', rank: 172,
+      bannedBooks: ['The Anarchist Cookbook (William Powell)', 'American Psycho (Bret Easton Ellis – eingeschränkt)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kanada', lat: 56.1304, lng: -106.3468, score: 114.78, color: '#8b0000', rank: 173,
+      bannedBooks: ['Mein Kampf (Adolf Hitler – eingeschränkt erlaubt)', 'The Turner Diaries (William Luther Pierce)', 'Hassliteratur gem. Strafgesetzbuch §319'] },
+    { name: 'USA', lat: 37.0902, lng: -95.7129, score: 115.22, color: '#8b0000', rank: 174,
+      bannedBooks: ['Gender Queer (Maia Kobabe – in vielen Staaten)', 'The Hate U Give (Angie Thomas)', 'The Bluest Eye (Toni Morrison)'] },
+    { name: 'Mexiko', lat: 23.6345, lng: -102.5528, score: 115.67, color: '#8b0000', rank: 175,
+      bannedBooks: ['Narco-kritische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kuba', lat: 21.5218, lng: -77.7812, score: 116.11, color: '#8b0000', rank: 176,
+      bannedBooks: ['Castrokritische Literatur', 'Exilanten-Schriften', 'The Anarchist Cookbook (William Powell)'] },
+    { name: 'Haiti', lat: 18.9712, lng: -72.2852, score: 116.56, color: '#8b0000', rank: 177,
+      bannedBooks: ['Duvalier-kritische Literatur (historisch)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Dominikanische Republik', lat: 18.7357, lng: -70.1627, score: 117.02, color: '#8b0000', rank: 178,
+      bannedBooks: ['Kritik an Trujillo (historisch verboten)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+          { name: 'Jamaika', lat: 18.1096, lng: -77.2975, score: 117.47, color: '#8b0000', rank: 179,
+      bannedBooks: ['LGBTQ+-Themen (zeitweise in Schulen zensiert)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Guyana', lat: 4.8604, lng: -58.9302, score: 117.91, color: '#8b0000', rank: 180,
+      bannedBooks: ['Oppositionelle Literatur (Burnham-Ära)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Suriname', lat: 3.9193, lng: -56.0278, score: 118.36, color: '#8b0000', rank: 181,
+      bannedBooks: ['Bouterse-kritische Werke', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Französisch-Guayana', lat: 3.9339, lng: -53.1258, score: 118.80, color: '#8b0000', rank: 182,
+      bannedBooks: ['Separatistische Literatur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler – kommentiert erlaubt)'] },
+    { name: 'Belize', lat: 17.1899, lng: -88.4976, score: 119.25, color: '#8b0000', rank: 183,
+      bannedBooks: ['Sexualpädagogik in Schulen', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'El Salvador', lat: 13.7942, lng: -88.8965, score: 119.70, color: '#8b0000', rank: 184,
+      bannedBooks: ['Banden- und Gewaltliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Nicaragua', lat: 12.8654, lng: -85.2072, score: 120.14, color: '#8b0000', rank: 185,
+      bannedBooks: ['Ortega-kritische Werke', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Honduras', lat: 13.2, lng: -85.6667, score: 120.59, color: '#8b0000', rank: 186,
+      bannedBooks: ['Drogen- und Korruptionsliteratur', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Guatemala', lat: 15.7835, lng: -90.2308, score: 121.03, color: '#8b0000', rank: 187,
+      bannedBooks: ['Indigenenbewegungs-Schriften', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Panama', lat: 8.538, lng: -80.7821, score: 121.48, color: '#8b0000', rank: 188,
+      bannedBooks: ['USA-kritische Literatur (Canal Zone-Historie)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Costa Rica', lat: 9.7489, lng: -83.7534, score: 121.93, color: '#8b0000', rank: 189,
+      bannedBooks: ['Extremistische Literatur', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Kolumbien', lat: 4.5709, lng: -74.2973, score: 122.37, color: '#8b0000', rank: 190,
+      bannedBooks: ['FARC-Propaganda', 'Narco-Geschichten', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Venezuela', lat: 6.4238, lng: -66.5897, score: 122.82, color: '#8b0000', rank: 191,
+      bannedBooks: ['Regierungskritische Schriften', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Ecuador', lat: -1.8312, lng: -78.1834, score: 123.26, color: '#8b0000', rank: 192,
+      bannedBooks: ['Politisch links- oder rechtsradikale Texte', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Peru', lat: -9.1899, lng: -75.0152, score: 123.71, color: '#8b0000', rank: 193,
+      bannedBooks: ['Sendero Luminoso-Propaganda', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Bolivien', lat: -16.2902, lng: -63.5887, score: 124.15, color: '#8b0000', rank: 194,
+      bannedBooks: ['Regierungskritik (Evo Morales)', 'The Turner Diaries (William Luther Pierce)', 'Mein Kampf (Adolf Hitler)'] },
+    { name: 'Paraguay', lat: -23.4425, lng: -58.4438, score: 124.60, color: '#8b0000', rank: 195,
+      bannedBooks: ['Stronista-kritische Literatur (historisch)', 'The Anarchist Cookbook (William Powell)', 'Mein Kampf (Adolf Hitler)'] }
+            ];
+
+        // Modal öffnen/schließen
+        window.openModal = function(modalId) {
+            const modal = document.getElementById('modal-' + modalId);
+            if (modal) {
+                modal.classList.add('active');
+                if (modalId === 'worldmap') {
+                    setTimeout(() => {
+                        createPressMap();
+                        populateModalRanking();
+                    }, 200);
+                }
+            }
+        };        // Zurück zur Hauptseite
+        window.goBackToMain = function() {
+            window.location.href = 'zensur.html';
+        };
+
+        window.closeModal = function(modalId) {
+            // Nicht mehr verwendet, aber für Kompatibilität beibehalten
+        };
+
+        // Pressefreiheits-Karte erstellen
+        function createPressMap() {
+            try {
+                const mapContainer = document.getElementById('pressmap');
+                if (!mapContainer) return;
+
+                // Entferne alte Karte
+                if (pressMap) {
+                    pressMap.remove();
+                    pressMap = null;
+                }
+
+                mapContainer.innerHTML = '';
+
+                // Neue Karte erstellen
+                pressMap = L.map('pressmap').setView([30, 0], 2);
+
+                // OpenStreetMap Tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(pressMap);
+
+                // Marker für jedes Land
+                countries.forEach(country => {
+                    // Farbiger Punkt statt Pin
+                    const marker = L.circleMarker([country.lat, country.lng], {
+                        color: 'white',
+                        fillColor: country.color,
+                        fillOpacity: 0.9,
+                        radius: 10,
+                        weight: 2
+                    }).addTo(pressMap);
+
+                    // Popup-Inhalt
+                    const bannedBooksHtml = country.bannedBooks.map(book => '<li>' + book + '</li>').join('');
+                    
+                    const popupContent = 
+                        '<div style="max-width: 280px;">' +
+                        '<h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 1.2rem;">' + country.name + '</h3>' +
+                        '<div style="background: linear-gradient(135deg, ' + country.color + ', ' + country.color + '90); color: white; padding: 8px 12px; border-radius: 15px; text-align: center; margin-bottom: 15px;">' +
+                        '<strong>Pressefreiheits-Score: ' + country.score + '</strong>' +
+                        '</div>' +
+                        '<div style="margin-bottom: 15px;">' +
+                        '<h4 style="margin: 0 0 8px 0; color: #e74c3c; font-size: 1rem;">📚 Verbotene/Zensierte Bücher:</h4>' +
+                        '<ul style="margin: 0; padding-left: 20px; color: #555;">' + bannedBooksHtml + '</ul>' +
+                        '</div>' +
+                        '</div>';
+
+                    marker.bindPopup(popupContent);
+                });
+
+                console.log('✅ Pressefreiheits-Karte erfolgreich erstellt');
+            } catch (error) {
+                console.error('❌ Fehler beim Erstellen der Karte:', error);
+            }
+        }
+
+        // Rangliste für Modal populieren
+        function populateModalRanking() {
+            const tbody = document.getElementById('ranking-tbody-modal');
+            if (!tbody) return;
+
+            // Sortiere Länder nach Score (absteigend)
+            const sortedCountries = [...countries].sort((a, b) => b.score - a.score);
+            
+            tbody.innerHTML = '';
+            
+            sortedCountries.forEach((country, index) => {
+                const rank = index + 1;
+                let scoreColor = '#27ae60'; // Grün
+                
+                if (country.score < 60) scoreColor = '#e74c3c'; // Rot
+                else if (country.score < 70) scoreColor = '#e67e22'; // Orange
+                else if (country.score < 80) scoreColor = '#f39c12'; // Gelb-Orange
+                
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #f0f0f0';
+                
+                row.innerHTML = `
+                    <td style="padding: 8px; text-align: center; font-weight: ${rank <= 10 ? 'bold' : 'normal'}; color: ${rank <= 10 ? '#2c3e50' : '#666'};">${rank}</td>
+                    <td style="padding: 8px; font-weight: ${['Deutschland', 'USA', 'China', 'Russland'].includes(country.name) ? 'bold' : 'normal'};">${country.name}</td>
+                    <td style="padding: 8px; text-align: center; color: ${scoreColor}; font-weight: bold;">${country.score}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Initialisiere beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', () => {
+            // Automatisch das Modal öffnen
+            setTimeout(() => {
+                createPressMap();
+                populateModalRanking();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

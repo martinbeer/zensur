@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Was ist Zensur? - Definition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 95vw;
+            max-height: 95vh;
+            width: 95vw;
+            height: 95vh;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 40px 20px;
+            height: calc(95vh - 80px);
+            overflow-y: auto;
+        }
+
+        /* Content Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .definition-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .definition-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        .definition-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .definition-text {
+            font-size: 1.3rem;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .definition-highlight {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 25px 0;
+        }
+
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .type-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .type-card h3 {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .type-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .type-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .type-card li {
+            color: #555;
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .type-card li::before {
+            content: '→';
+            color: #3498db;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .examples-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .examples-section h2 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #f39c12;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .warning-icon {
+            font-size: 2rem;
+            color: #f39c12;
+        }
+
+        .warning-content h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .warning-content p {
+            color: #856404;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .types-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .modal-body {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+
+    <div class="container">
+        <!-- Modal für Definition -->
+        <div class="modal-overlay active" id="modal-definition">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">📚 Was ist Zensur? - Definition</h2>
+                    <button class="close-btn" onclick="goBackToMain()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Header -->
+                    <div class="header">
+                        <h1>📚 Was ist Zensur?</h1>
+                        <p>Verstehe die verschiedenen Formen und Ausprägungen der Zensur</p>
+                    </div>
+
+                    <!-- Main Definition -->
+                    <div class="definition-card">
+                        <div class="definition-icon">📖</div>
+                        <h2 class="definition-title">Definition von Zensur</h2>
+                        <div class="definition-text">
+                            <strong>Zensur</strong> (lateinisch <em>censura</em>) ist die systematische Kontrolle, Unterdrückung oder Manipulation von Informationen, Meinungen oder künstlerischen Ausdrucksformen durch staatliche oder private Institutionen.
+                        </div>
+                        <div class="definition-highlight">
+                            💡 Zensur kann präventiv (vor der Veröffentlichung) oder repressiv (nach der Veröffentlichung) erfolgen und reicht von subtilen Einflussnahmen bis hin zu direkten Verboten.
+                        </div>
+                    </div>
+
+                    <!-- Types of Censorship -->
+                    <div class="examples-section">
+                        <h2>🎯 Arten der Zensur</h2>
+                        <div class="types-grid">
+                            <div class="type-card">
+                                <h3>📝 Präventive Zensur</h3>
+                                <p><strong>Vor der Veröffentlichung:</strong> Inhalte werden bereits im Vorfeld überprüft und gegebenenfalls verboten oder verändert.</p>
+                                <ul>
+                                    <li>Vorzensur in Diktaturen</li>
+                                    <li>Redaktionelle Selbstzensur</li>
+                                    <li>Algorithmus-basierte Filterung</li>
+                                    <li>Lizenzvergabe für Medien</li>
+                                </ul>
+                            </div>
+
+                            <div class="type-card">
+                                <h3>⚡ Repressive Zensur</h3>
+                                <p><strong>Nach der Veröffentlichung:</strong> Bereits veröffentlichte Inhalte werden nachträglich verboten, gelöscht oder sanktioniert.</p>
+                                <ul>
+                                    <li>Buchverbote und -verbrennungen</li>
+                                    <li>Löschung von Social Media Posts</li>
+                                    <li>Sperrung von Websites</li>
+                                    <li>Strafverfolgung von Autoren</li>
+                                </ul>
+                            </div>
+
+                            <div class="type-card">
+                                <h3>🏛️ Staatliche Zensur</h3>
+                                <p><strong>Durch Regierungen:</strong> Offizielle staatliche Kontrolle von Informationen zum Schutz der Macht oder "öffentlichen Ordnung".</p>
+                                <ul>
+                                    <li>Mediengesetze und Verbote</li>
+                                    <li>Internet-Shutdowns</li>
+                                    <li>Propaganda-Kontrolle</li>
+                                    <li>Bildungszensur</li>
+                                </ul>
+                            </div>
+
+                            <div class="type-card">
+                                <h3>🏢 Private Zensur</h3>
+                                <p><strong>Durch Unternehmen:</strong> Kontrolle durch private Akteure wie Tech-Konzerne, Verlage oder Plattformbetreiber.</p>
+                                <ul>
+                                    <li>Social Media Richtlinien</li>
+                                    <li>Algorithmus-Manipulation</li>
+                                    <li>Shadow-Banning</li>
+                                    <li>Werbekunden-Druck</li>
+                                </ul>
+                            </div>
+
+                            <div class="type-card">
+                                <h3>⛪ Religiöse Zensur</h3>
+                                <p><strong>Durch Glaubensgemeinschaften:</strong> Kontrolle von Inhalten, die als blasphemisch oder gegen religiöse Lehren verstoßend betrachtet werden.</p>
+                                <ul>
+                                    <li>Blasphemie-Gesetze</li>
+                                    <li>Kirchliche Bücherindizes</li>
+                                    <li>Fatwa-Aufrufe</li>
+                                    <li>Religionsbasierte Verbote</li>
+                                </ul>
+                            </div>
+
+                            <div class="type-card">
+                                <h3>👥 Gesellschaftliche Zensur</h3>
+                                <p><strong>Durch sozialen Druck:</strong> Selbstzensur oder Ausgrenzung aufgrund gesellschaftlicher Normen und Erwartungen.</p>
+                                <ul>
+                                    <li>Cancel Culture</li>
+                                    <li>Politische Korrektheit</li>
+                                    <li>Peer Pressure</li>
+                                    <li>Shitstorms und Mobbing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Framework -->
+                    <div class="examples-section">
+                        <h2>⚖️ Rechtliche Grenzen in Deutschland</h2>
+                        <div class="definition-highlight" style="background: linear-gradient(135deg, #74b9ff, #0984e3);">
+                            📜 <strong>Artikel 5 Grundgesetz:</strong> "Jeder hat das Recht, seine Meinung in Wort, Schrift und Bild frei zu äußern und zu verbreiten..."
+                        </div>
+                        
+                        <div class="types-grid">
+                            <div class="type-card">
+                                <h3>✅ Geschützte Meinungsäußerung</h3>
+                                <ul>
+                                    <li>Politische Kritik</li>
+                                    <li>Künstlerische Freiheit</li>
+                                    <li>Wissenschaftliche Forschung</li>
+                                    <li>Pressefreiheit</li>
+                                </ul>
+                            </div>
+
+                            <div class="type-card">
+                                <h3>❌ Grenzen der Meinungsfreiheit</h3>
+                                <ul>
+                                    <li>Volksverhetzung</li>
+                                    <li>Beleidigung und Verleumdung</li>
+                                    <li>Holocaustleugnung</li>
+                                    <li>Verfassungsfeindliche Inhalte</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning Box -->
+                    <div class="warning-box">
+                        <span class="warning-icon">⚠️</span>
+                        <div class="warning-content">
+                            <h4>Wichtiger Hinweis</h4>
+                            <p>
+                                Zensur ist ein komplexes Thema mit verschiedenen rechtlichen, ethischen und gesellschaftlichen Dimensionen. 
+                                Die Grenze zwischen legitimen Beschränkungen und Zensur ist oft umstritten und entwickelt sich ständig weiter, 
+                                besonders im digitalen Zeitalter.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Zurück zur Hauptseite
+        function goBackToMain() {
+            window.location.href = 'zensur.html';
+        }
+
+        // Smooth scrolling für bessere UX
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.type-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+            
+            console.log('Definition-Seite geladen und bereit!');
+        });
+    </script>
+</body>
+</html>
