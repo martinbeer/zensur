@@ -6,86 +6,7 @@
     <title>Geschichte der Zensur - Interaktiver Zeitstrahl</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="        /* Worterklärungen für Kinder */
-        .difficult-word {
-            border-bottom: 2px dotted rgba(255, 255, 255, 0.8);
-            cursor: help;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        
-        .difficult-word:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            padding: 2px 4px;
-            margin: 0 -4px;
-        }
-        
-        .word-explanation {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            max-width: 250px;
-            min-width: 200px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-        
-        .word-explanation::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-            border-top-color: #2c3e50;
-        }
-        
-        .word-explanation.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(-5px);
-        }
-        
-        .word-explanation .close-btn {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .word-explanation .close-btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {…}pires" content="0" />
+    <meta http-equiv="Expires" content="0" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -152,7 +73,88 @@
             border-radius: 15px 15px 0 0;
             display: flex;
             justify-content: space-between;
+        }
+
+        /* Difficult words tooltip styles (moved here to ensure they load correctly) */
+        .difficult-word {
+            border-bottom: 2px dotted rgba(255, 255, 255, 0.8);
+            cursor: help;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .difficult-word:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 0 -4px;
+        }
+
+        .word-explanation {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 250px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .word-explanation::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #2c3e50;
+        }
+
+        .word-explanation.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+
+        .word-explanation .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
             align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .word-explanation .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Interactive Timeline */
+        .timeline-wrapper {
             z-index: 10;
             position: relative;
         }
@@ -597,6 +599,19 @@
             'systematisch': 'Systematisch bedeutet "geplant und geordnet". Es passiert nicht zufällig, sondern jemand macht es mit Absicht.'
         };
 
+        // Auto-wrap schwierige Wörter, falls sie noch nicht markiert sind
+        const difficultTerms = Object.keys(wordExplanations)
+            .sort((a, b) => b.length - a.length)
+            .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const difficultRegex = new RegExp(`\\b(${difficultTerms.join('|')})\\b`, 'gi');
+
+        function wrapDifficultWords(html) {
+            return html.replace(difficultRegex, (match) => {
+                // nicht doppelt wrappen, wenn bereits Span vorhanden
+                return `<span class="difficult-word" onclick="showWordExplanation(event, '${match.toLowerCase()}')">${match}</span>`;
+            });
+        }
+
         // Aktuelle offene Erklärung
         let currentExplanation = null;
 
@@ -723,11 +738,11 @@
             const event = eventData[eventId];
             if (!event) return;
 
-            document.getElementById('detailYear').textContent = event.year;
-            document.getElementById('detailIcon').textContent = event.icon;
-            document.getElementById('detailTitle').textContent = event.title;
-            document.getElementById('detailDescription').textContent = event.description;
-            document.getElementById('detailImpact').textContent = event.impact;
+            document.getElementById('detailYear').innerHTML = event.year;
+            document.getElementById('detailIcon').innerHTML = event.icon;
+            document.getElementById('detailTitle').innerHTML = event.title;
+            document.getElementById('detailDescription').innerHTML = wrapDifficultWords(event.description);
+            document.getElementById('detailImpact').innerHTML = wrapDifficultWords(event.impact);
 
             document.getElementById('detailOverlay').classList.add('show');
             document.getElementById('detailCard').classList.add('show');
