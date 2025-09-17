@@ -3,816 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aktuelle Beispiele von Zensur</title>
+    <title>Banned Books – Meinungen</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
-            line-height: 1.6;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw; overflow: hidden;
         }
+        .container { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: #fff; border-radius: 20px; width: 95vw; height: 95vh; box-shadow: 0 25px 50px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column; }
+        .modal-header { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .modal-title { font-size: 1.6rem; font-weight: 700; }
+        .close-btn { background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+        .close-btn:hover { background: rgba(255,255,255,0.2); }
+    .modal-body { position: relative; flex: 1; display: grid; grid-template-rows: auto 1fr; gap: 16px; padding: 18px; background: linear-gradient(135deg, #ecf0f1, #ffffff); min-height: 0; }
 
-        .container {
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-        }
+        /* Conversation selector */
+        .selector { display: flex; gap: 10px; flex-wrap: wrap; }
+        .sel-btn { background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 999px; padding: 10px 14px; cursor: pointer; font-weight: 600; color: #2c3e50; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+        .sel-btn.active { background: #e74c3c; color: #fff; border-color: transparent; }
 
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
+        /* Chat window */
+    .chat-wrap { position: relative; height: 100%; background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; overflow: hidden; display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; min-height: 0; }
+    .chat { padding: 16px; overflow-y: auto; scroll-behavior: smooth; height: 100%; min-height: 0; }
+        .msg { max-width: min(70ch, 85%); padding: 12px 14px; border-radius: 14px; margin: 10px 0; line-height: 1.6; box-shadow: 0 6px 16px rgba(0,0,0,0.06); position: relative; word-wrap: break-word; }
+        .from-interviewer { background: #f0f6ff; border: 1px solid #d6e6ff; color: #1f3b66; margin-right: auto; }
+        .from-respondent { background: #eefaf3; border: 1px solid #cdeedd; color: #1f5a3e; margin-left: auto; }
+        .name { font-size: 0.75rem; font-weight: 700; opacity: 0.7; margin-bottom: 6px; display: block; }
+        .typing { border-right: 2px solid rgba(0,0,0,0.4); animation: caret 0.8s steps(1) infinite; }
+        @keyframes caret { 50% { border-color: transparent; } }
 
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 0;
-            max-width: 95vw;
-            max-height: 95vh;
-            width: 95vw;
-            height: 95vh;
-            position: relative;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
+    /* Right-side click hint and edge overlay */
+    .hint { position: absolute; right: 14px; bottom: 14px; background: rgba(0,0,0,0.6); color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; backdrop-filter: blur(6px); }
+    .edge-indicator { position: absolute; top: 0; right: 0; width: 36%; height: 100%; pointer-events: none; background: linear-gradient(270deg, rgba(231,76,60,0.06), rgba(231,76,60,0)); }
+        .progress { position: absolute; right: 14px; top: 14px; background: rgba(255,255,255,0.85); color: #2c3e50; padding: 6px 10px; border-radius: 999px; font-size: 0.85rem; border: 1px solid rgba(0,0,0,0.08); }
 
-        .modal-header {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 20px 20px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 0;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background-color 0.3s ease;
-        }
-
-        .close-btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .modal-body {
-            padding: 40px 20px;
-            height: calc(95vh - 80px);
-            overflow-y: auto;
-        }        /* Header Section */
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #e74c3c, #f39c12);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            color: #7f8c8d;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* Examples Grid */
-        .examples-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .example-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            transition: all 0.4s ease;
-            border-top: 5px solid;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .example-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--color1), var(--color2));
-        }
-
-        .example-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .example-card.china {
-            --color1: #e74c3c;
-            --color2: #c0392b;
-        }
-
-        .example-card.usa {
-            --color1: #3498db;
-            --color2: #2980b9;
-        }
-
-        .example-card.russia {
-            --color1: #f39c12;
-            --color2: #e67e22;
-        }
-
-        .example-card.iran {
-            --color1: #9b59b6;
-            --color2: #8e44ad;
-        }
-
-        .example-card.global {
-            --color1: #1abc9c;
-            --color2: #16a085;
-        }
-
-        .example-card.turkey {
-            --color1: #e67e22;
-            --color2: #d35400;
-        }
-
-        .example-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .example-flag {
-            font-size: 2.5rem;
-        }
-
-        .example-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin: 0;
-        }
-
-        .example-subtitle {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .example-content {
-            font-size: 1rem;
-            color: #555;
-            margin-bottom: 20px;
-            line-height: 1.7;
-        }
-
-        .example-stats {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .example-stats ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .example-stats li {
-            padding: 5px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .example-stats li::before {
-            content: '●';
-            color: var(--color1, #e74c3c);
-            font-weight: bold;
-        }
-
-        .impact-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-
-        /* Info Sections */
-        .info-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-
-        .info-section h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-section ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .info-section li {
-            padding: 10px 0;
-            border-bottom: 1px solid #ecf0f1;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-        }
-
-        .info-section li:last-child {
-            border-bottom: none;
-        }
-
-        .info-section strong {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .technique-icon {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .warning-box {
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-            border: 2px solid #f39c12;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 30px 0;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-        }
-
-        .warning-icon {
-            font-size: 2rem;
-            color: #f39c12;
-        }
-
-        .warning-content h4 {
-            color: #856404;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .warning-content p {
-            color: #856404;
-            margin: 0;
-            line-height: 1.6;
-        }
-
-        /* Worterklärungen für Kinder */
-        .difficult-word {
-            border-bottom: 2px dotted #3498db;
-            cursor: help;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        
-        .difficult-word:hover {
-            background-color: rgba(52, 152, 219, 0.2);
-            border-radius: 4px;
-            padding: 2px 4px;
-            margin: 0 -4px;
-        }
-        
-        .word-explanation {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            max-width: 250px;
-            min-width: 200px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-        
-        .word-explanation::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-            border-top-color: #2c3e50;
-        }
-        
-        .word-explanation.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(-5px);
-        }
-        
-        .word-explanation .close-btn {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .word-explanation .close-btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-        }        /* Responsive Design */
         @media (max-width: 768px) {
-            .examples-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .word-explanation {
-                position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                max-width: 90vw;
-                width: 90vw;
-            }
-            
-            .word-explanation.show {
-                transform: translateX(-50%);
-            }
-            
-            .word-explanation::after {
-                display: none;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .back-button {
-                position: static;
-                margin-bottom: 20px;
-                align-self: flex-start;
-            }
+            .modal-content { width: 100vw; height: 100vh; border-radius: 0; }
+            .modal-header { border-radius: 0; }
+            .edge-indicator { width: 45%; }
         }
-    </style>    <div class="container">
-        <!-- Modal für Aktuelle Beispiele -->
-        <div class="modal-overlay active" id="modal-examples">
+    </style>
+
+    <div class="container">
+        <div class="modal-overlay active">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="modal-title">🌍 Aktuelle Beispiele von Zensur</h2>
+                    <h2 class="modal-title">📚 Banned Books – Meinungen</h2>
                     <button class="close-btn" onclick="goBackToMain()">&times;</button>
                 </div>
-                <div class="modal-body">
-                    <!-- Header -->
-                    <div class="header">
-                        <h1>🌍 Aktuelle Beispiele von Zensur</h1>
-                        <p>Wie Regierungen und Konzerne weltweit die freie Meinungsäußerung einschränken</p>
+                <div class="modal-body" id="modalBody">
+                    <div class="selector" id="selector"></div>
+                    <div class="chat-wrap">
+                        <div class="chat" id="chat"></div>
+                        <div class="edge-indicator" aria-hidden="true"></div>
+                        <div class="progress" id="progress">0 / 0</div>
                     </div>
-
-        <!-- Examples Grid -->
-        <div class="examples-grid">
-            <div class="example-card china">
-                <div class="example-header">
-                    <span class="example-flag">🇨🇳</span>
-                    <div>
-                        <h3 class="example-title">Great Firewall</h3>
-                        <p class="example-subtitle">China • 2025</p>
-                    </div>
-                </div>
-                <div class="example-content">
-                    Das weltweit fortschrittlichste Zensursystem blockiert über 10.000 Websites und überwacht alle digitalen Aktivitäten von 1,4 Milliarden Menschen in Echtzeit.
-                </div>
-                <div class="example-stats">
-                    <ul>
-                        <li>Google, Facebook, Twitter komplett gesperrt</li>
-                        <li>KI-gestützte Inhaltserkennung in Millisekunden</li>
-                        <li>Social Credit System bewertet alle Bürger</li>
-                        <li>Über 50.000 Internet-Polizisten im Einsatz</li>
-                    </ul>
-                </div>
-                <span class="impact-badge">1.4 Mrd. Menschen betroffen</span>
-            </div>
-
-            <div class="example-card usa">
-                <div class="example-header">
-                    <span class="example-flag">🇺🇸</span>
-                    <div>
-                        <h3 class="example-title">Schulbuchverbote</h3>
-                        <p class="example-subtitle">USA • 2024-2025</p>
-                    </div>
-                </div>
-                <div class="example-content">
-                    Über 10.000 Bücher wurden aus amerikanischen Schulbibliotheken entfernt. Besonders betroffen sind Werke zu LGBTQ+-Themen, Rassismus und kritischer Geschichtsbetrachtung.
-                </div>
-                <div class="example-stats">
-                    <ul>
-                        <li>"Gender Queer" - meistverbotenes Buch</li>
-                        <li>"Maus" (Holocaust-Comic) zensiert</li>
-                        <li>"The Hate U Give" wegen Polizeikritik verboten</li>
-                        <li>5.000 Schulbezirke betroffen</li>
-                    </ul>
-                </div>
-                <span class="impact-badge">Millionen von Schülern betroffen</span>
-            </div>
-
-            <div class="example-card russia">
-                <div class="example-header">
-                    <span class="example-flag">🇷🇺</span>
-                    <div>
-                        <h3 class="example-title">Kriegszensur</h3>
-                        <p class="example-subtitle">Russland • 2022-2025</p>
-                    </div>
-                </div>
-                <div class="example-content">
-                    <span class="difficult-word" onclick="showWordExplanation(event, 'drakonische')">Drakonische</span> Mediengesetze machen bereits das Wort "Krieg" für die Ukraine-Invasion strafbar. Bis zu 15 Jahre Haft für "Fake News" über das Militär.
-                </div>
-                <div class="example-stats">
-                    <ul>
-                        <li>Facebook, Instagram, Twitter gesperrt</li>
-                        <li>Unabhängige Medien als "ausländische Agenten"</li>
-                        <li>Tausende Verhaftungen wegen Anti-Kriegs-Posts</li>
-                        <li>VPN-Nutzung wird kriminalisiert</li>
-                    </ul>
-                </div>
-                <span class="impact-badge">144 Mio. Menschen betroffen</span>
-            </div>
-
-            <div class="example-card iran">
-                <div class="example-header">
-                    <span class="example-flag">🇮🇷</span>
-                    <div>
-                        <h3 class="example-title">Internet-Shutdowns</h3>
-                        <p class="example-subtitle">Iran • 2024-2025</p>
-                    </div>
-                </div>
-                <div class="example-content">
-                    Komplette Internet-Abschaltungen während Protesten. WhatsApp, Telegram und Instagram dauerhaft gesperrt. Todesstrafe für Online-Aktivismus möglich.
-                </div>
-                <div class="example-stats">
-                    <ul>
-                        <li>Komplette Internet-Blackouts bei Protesten</li>
-                        <li>Starlink-Satelliten werden gestört</li>
-                        <li>VPN-Server systematisch blockiert</li>
-                        <li>Todesstrafe für "Korruption auf Erden"</li>
-                    </ul>
-                </div>
-                <span class="impact-badge">84 Mio. Menschen betroffen</span>
-            </div>
-
-            <div class="example-card global">
-                <div class="example-header">
-                    <span class="example-flag">🏢</span>
-                    <div>
-                        <h3 class="example-title">Big Tech Zensur</h3>
-                        <p class="example-subtitle">Global • 2024-2025</p>
-                    </div>
-                </div>
-                <div class="example-content">
-                    Große Tech-Konzerne entfernen Inhalte ohne <span class="difficult-word" onclick="showWordExplanation(event, 'transparente')">transparente</span> Begründung. <span class="difficult-word" onclick="showWordExplanation(event, 'shadowbanning')">Shadow-Banning</span> macht Inhalte unsichtbar, ohne dass Nutzer es merken.
-                </div>
-                <div class="example-stats">
-                    <ul>
-                        <li>YouTube: Automatische KI-Löschung</li>                        <li>Meta: <span class="difficult-word" onclick="showWordExplanation(event, 'faktenchecker')">Faktenchecker</span> mit politischer Agenda</li>
-                        <li>Twitter/X: <span class="difficult-word" onclick="showWordExplanation(event, 'willkuerliche')">Willkürliche</span> Suspendierungen</li>
-                        <li>TikTok: <span class="difficult-word" onclick="showWordExplanation(event, 'algorithmus')">Algorithmus</span> bevorzugt bestimmte Meinungen</li>
-                    </ul>
-                </div>
-                <span class="impact-badge">Milliarden von Nutzern betroffen</span>
-            </div>
-
-            <div class="example-card turkey">
-                <div class="example-header">
-                    <span class="example-flag">🇹🇷</span>
-                    <div>
-                        <h3 class="example-title">Social Media Kontrolle</h3>
-                        <p class="example-subtitle">Türkei • 2024-2025</p>
-                    </div>
-                </div>
-                <div class="example-content">
-                    Social Media Konzerne müssen lokale Vertreter ernennen und alle Nutzerdaten in der Türkei speichern. Wikipedia war 2 Jahre komplett gesperrt.
-                </div>
-                <div class="example-stats">
-                    <ul>
-                        <li>Über 245.000 blockierte Websites</li>
-                        <li>Direkte Content-Löschung durch Regierung</li>
-                        <li>Inhaftierung von Journalisten</li>
-                        <li>Schließung von Medienunternehmen</li>
-                    </ul>
-                </div>
-                <span class="impact-badge">84 Mio. Menschen betroffen</span>
-            </div>
-        </div>
-
-        <!-- Techniques Section -->
-        <div class="info-section">
-            <h2>🔧 Techniken der digitalen Zensur</h2>
-            <ul>
-                <li>
-                    <span class="technique-icon">1</span>
-                    <div>
-                        <strong>DNS-Blocking:</strong> Websites werden durch Manipulation der Namensauflösung blockiert - die einfachste Form der Zensur
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">2</span>
-                    <div>
-                        <strong>Deep Packet Inspection:</strong> Inhalte werden in Echtzeit analysiert und gefiltert, selbst verschlüsselte Verbindungen können erkannt werden
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">3</span>
-                    <div>
-                        <strong>Shadow-Banning:</strong> Inhalte werden versteckt, ohne dass Nutzer es merken - besonders perfide Form der Zensur
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">4</span>
-                    <div>
-                        <strong>Throttling:</strong> Verlangsamung der Internetgeschwindigkeit für bestimmte Dienste bis zur Unbrauchbarkeit
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">5</span>
-                    <div>
-                        <strong>AI-Content-Filtering:</strong> KI-gestützte Erkennung und Löschung von Inhalten in Millisekunden
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">6</span>
-                    <div>
-                        <strong>Geo-Blocking:</strong> Regionale Beschränkungen für Inhalte basierend auf IP-Adressen
-                    </div>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Countermeasures Section -->
-        <div class="info-section">
-            <h2>🛡️ Umgehungsmöglichkeiten & Widerstand</h2>
-            <ul>
-                <li>
-                    <span class="technique-icon">V</span>
-                    <div>
-                        <strong>VPN (Virtual Private Network):</strong> Verschlüsselung und Umleitung des Internetverkehrs über andere Länder
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">T</span>
-                    <div>
-                        <strong>Tor-Browser:</strong> Anonymisierung durch mehrfache Verschlüsselung - das "Darknet" für alle
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">P</span>
-                    <div>
-                        <strong>Proxy-Server:</strong> Umleitung über zwischengeschaltete Server, weniger sicher als VPN
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">M</span>
-                    <div>
-                        <strong>Mirror-Sites:</strong> Kopien gesperrter Websites unter anderen Adressen
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">N</span>
-                    <div>
-                        <strong>Mesh-Networks:</strong> Dezentrale Netzwerke ohne zentrale Kontrolle - die Zukunft der freien Kommunikation
-                    </div>
-                </li>
-                <li>
-                    <span class="technique-icon">S</span>
-                    <div>
-                        <strong>Steganographie:</strong> Verstecken von Nachrichten in Bildern oder anderen harmlosen Dateien
-                    </div>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Warning Box -->
-        <div class="warning-box">
-            <span class="warning-icon">⚠️</span>
-            <div class="warning-content">
-                <h4>Wichtiger Sicherheitshinweis</h4>
-                <p>
-                    Die Nutzung von Umgehungstools kann in autoritären Ländern zu schweren Strafen bis hin zur Todesstrafe führen. 
-                    In China, Iran, Nordkorea und anderen Diktaturen riskieren Menschen ihr Leben für freie Information. 
-                    Informieren Sie sich über lokale Gesetze und treffen Sie entsprechende Vorsichtsmaßnahmen.
-                </p>                    </div>
                 </div>
             </div>
         </div>
-    </div>    <script>        // Wörterbuch für Kinder-Erklärungen
-        const wordExplanations = {
-            'zensur': 'Zensur bedeutet, dass jemand entscheidet, was andere Menschen lesen, hören oder sehen dürfen. Es ist wie wenn ein Erwachsener bestimmt, welche Filme du schauen darfst.',
-            'diktatur': 'Eine Diktatur ist ein Land, wo nur eine Person oder eine kleine Gruppe alle Entscheidungen trifft und andere nicht mitbestimmen dürfen.',
-            'regime': 'Ein Regime ist eine Regierung, die oft mit Gewalt oder unfairen Mitteln an der Macht bleibt.',
-            'opposition': 'Opposition sind Menschen oder Gruppen, die gegen die Regierung sind und andere Ideen haben.',
-            'journalisten': 'Journalisten sind Menschen, die Nachrichten sammeln und schreiben, damit andere wissen, was in der Welt passiert.',
-            'propaganda': 'Propaganda sind Informationen, die nur eine Seite zeigen und Menschen zu einer bestimmten Meinung bringen sollen.',
-            'social media': 'Social Media sind Internetseiten wie TikTok oder Instagram, wo Menschen Bilder und Nachrichten teilen.',
-            'algorithmus': 'Ein Algorithmus ist wie ein Rezept für Computer, das entscheidet, welche Inhalte du zu sehen bekommst.',
-            'demokratie': 'Demokratie bedeutet, dass alle Menschen in einem Land mitbestimmen dürfen, wer das Land regiert.',
-            'meinungsfreiheit': 'Meinungsfreiheit bedeutet, dass jeder Mensch sagen darf, was er denkt, solange er anderen damit nicht schadet.',
-            'drakonische': 'Drakonisch bedeutet "sehr streng und hart". Wie wenn ein Lehrer für einen kleinen Fehler eine riesige Strafe gibt.',
-            'transparente': 'Transparent bedeutet "durchsichtig" oder "klar". Wenn etwas transparent ist, kann jeder verstehen, warum es gemacht wurde.',
-            'shadowbanning': 'Shadow-Banning bedeutet, dass deine Posts heimlich versteckt werden. Du merkst es nicht, aber andere sehen deine Beiträge nicht mehr.',
-            'faktenchecker': 'Faktenchecker sind Menschen oder Programme, die prüfen, ob Nachrichten wahr oder falsch sind.',
-            'willkuerliche': 'Willkürlich bedeutet "ohne echten Grund" oder "zufällig". Wie wenn jemand Regeln macht, die keinen Sinn ergeben.'
-        };
+    </div>
 
-        // Aktuelle offene Erklärung
-        let currentExplanation = null;
-
-        // Wort-Erklärung anzeigen
-        function showWordExplanation(event, word) {
-            event.stopPropagation();
-            
-            if (currentExplanation) {
-                currentExplanation.remove();
+    <script>
+        const transcripts = [
+            {
+                id: 'umfrage1', label: 'Umfrage 1 – Mann', interviewer: 'Matej', respondent: 'Mann',
+                lines: [
+                    { s: 'i', t: 'Lesen Sie gerne Bücher? Wenn ja, wie oft?' },
+                    { s: 'r', t: 'Ja, drei- bis viermal die Woche.' },
+                    { s: 'i', t: 'Was ist Ihre Meinung dazu, dass die heutige Jugend immer weniger liest?' },
+                    { s: 'r', t: 'Bücher lesen ist definitiv wichtig, und das fehlt unserer Jugend schon ein wenig.' },
+                    { s: 'i', t: 'Haben Sie schon einmal etwas von „Banned Books“ gehört?' },
+                    { s: 'r', t: 'Ja, davon habe ich auch schon mal etwas gehört. Das handelt sich doch um verbotene Bücher.' },
+                    { s: 'i', t: 'Ja, genau. Und was ist Ihre Meinung dazu, dass Bücher in bestimmten Ländern verboten werden?' },
+                    { s: 'r', t: 'Schwierig zu sagen, dass man alle Bücher verbietet. Es gibt gute Gründe, dass man das ein oder andere Buch verbietet. Meiner Meinung nach ist dies aber ein sehr schweres Thema.' },
+                    { s: 'i', t: 'Kennen Sie das Buch Fahrenheit 451 und was halten Sie von einer solchen Welt?' },
+                    { s: 'r', t: 'Gar nichts, unvorstellbar! Eine Welt ohne Bücher gefällt mir nicht und kann in meinen Augen nicht funktionieren.' }
+                ]
+            },
+            {
+                id: 'umfrage2', label: 'Umfrage 2 – Mädchen', interviewer: 'Matej', respondent: 'Mädchen',
+                lines: [
+                    { s: 'i', t: 'Liest du gerne Bücher? Wie oft?' },
+                    { s: 'r', t: 'Ja, auch regelmäßig!' },
+                    { s: 'i', t: 'Hast du schon mal etwas von „Banned Books“ gehört?' },
+                    { s: 'r', t: 'Ja, ich habe „Banned Books“ in zwei verschiedenen Zusammenhängen gehört. Einmal, dass Donald Trump eine bestimmte Liste von Büchern sperren will/gesperrt hat. Das andere Mal, dass früher dämonische Bücher von der Kirche verbrannt wurden.' },
+                    { s: 'i', t: 'Hast du schon einmal von dem Buch Fahrenheit 451 gehört?' },
+                    { s: 'r', t: 'Ja, ich habe schon mal davon gehört, aber bisher noch nicht gelesen. Es ist bereits auf meiner Bücherliste.' },
+                    { s: 'i', t: 'Was hältst du von einer Welt wie der in Fahrenheit 451?' },
+                    { s: 'r', t: 'Ich finde eine solche Welt ziemlich blöd. Allein der Gedanke daran, dass niemand mehr richtig nachdenkt, finde ich schon schlimm. Bücher sind ein wichtiger Bestandteil für Informationen. Beispielsweise durch ChatGPT strengt sich keiner mehr selbst an.' }
+                ]
+            },
+            {
+                id: 'umfrage3', label: 'Umfrage 3 – Frau', interviewer: 'Max', respondent: 'Frau',
+                lines: [
+                    { s: 'i', t: 'Erstmal vorab: Lesen Sie gerne Bücher? Wenn ja, was für ein Genre von Büchern lesen Sie?' },
+                    { s: 'r', t: 'Ja, tue ich. Aktuell lese ich mehr Sachbücher, beispielsweise über Lustenau.' },
+                    { s: 'i', t: 'Heutzutage ist es ja nicht mehr so üblich, dass Jugendliche in unserem Alter viel lesen.' },
+                    { s: 'r', t: 'Ja, ich bin der Meinung, um die Sprache richtig gut zu können, ist es besonders wichtig, sich mit Büchern zu befassen. Abgesehen davon finde ich, dass die Nachrichten auf den sozialen Medien nicht mit der Qualität der Sprache in den verschiedenen Büchern mithalten können.' },
+                    { s: 'i', t: 'Haben Sie schon einmal von „Banned Books“ gehört?' },
+                    { s: 'r', t: 'Nein, bisher noch nicht. Ich könnte mir darunter vorstellen, dass manche Bücher, die zu gesellschaftskritisch sind, von Regierungen verboten werden.' },
+                    { s: 'i', t: 'Kennen Sie das Buch Fahrenheit 451 und könnte man mittlerweile die dystopische Welt im Buch mit unserer Welt vergleichen?' },
+                    { s: 'r', t: 'Ähm, durch den heutzutage starken Handykonsum denke ich schon, dass das direkte persönliche Gespräch deutlich weniger geworden ist. Was meiner Meinung nach beim Lesen besonders hilft, ist das Vorlesen von Büchern. Laut einer Studie hat dies einen positiven Effekt bei Kleinkindern.' }
+                ]
             }
-            
-            const explanation = wordExplanations[word];
-            if (!explanation) return;
-            
-            const target = event.target;
-            const explanationDiv = document.createElement('div');
-            explanationDiv.className = 'word-explanation';
-            explanationDiv.innerHTML = `
-                <button class="close-btn" onclick="hideWordExplanation()">&times;</button>
-                ${explanation}
-            `;
-            
-            target.appendChild(explanationDiv);
-            currentExplanation = explanationDiv;
-            
-            setTimeout(() => {
-                explanationDiv.classList.add('show');
-            }, 10);
-            
-            setTimeout(() => {
-                if (currentExplanation === explanationDiv) {
-                    hideWordExplanation();
+        ];
+
+        let current = 0; // transcript index
+        let step = 0;    // line index
+    let typing = false;
+        let typerInterval = null;
+    let currentTyping = null; // { el, fullText, done }
+    // No autoplay; user advances via right-side clicks
+
+        const selectorEl = document.getElementById('selector');
+        const chatEl = document.getElementById('chat');
+        const progressEl = document.getElementById('progress');
+    const modalBody = document.getElementById('modalBody');
+
+        function goBackToMain(){ window.location.href = 'index.html'; }
+        window.goBackToMain = goBackToMain;
+
+        function renderSelector(){
+            selectorEl.innerHTML = '';
+            transcripts.forEach((t, i) => {
+                const b = document.createElement('button');
+                b.className = 'sel-btn' + (i === current ? ' active' : '');
+                b.textContent = t.label;
+                b.onclick = () => { selectTranscript(i); };
+                selectorEl.appendChild(b);
+            });
+        }
+
+        function selectTranscript(i){
+            current = i; step = 0; stopTyping();
+            chatEl.innerHTML = '';
+            renderSelector();
+            updateProgress();
+            // Add a small intro bubble
+            const intro = document.createElement('div');
+            intro.className = 'msg from-interviewer';
+            intro.innerHTML = `<span class=\"name\">${transcripts[current].interviewer}</span><span>Wir haben Leute auf der Straße Interviewt: Klicke rechts, um den Dialog zu starten …</span>`;
+            chatEl.appendChild(intro);
+        }
+
+        function stopTyping(){
+            // Immediately finalize the current typing: show full text and call done
+            typing = false;
+            if (typerInterval) { clearInterval(typerInterval); typerInterval = null; }
+            if (currentTyping && currentTyping.el) {
+                const { el, fullText, done } = currentTyping;
+                el.textContent = fullText;
+                currentTyping = null;
+                done && done();
+            }
+        }
+
+        function typeText(targetEl, fullText, speed=18, done){
+            typing = true;
+            currentTyping = { el: targetEl, fullText, done };
+            let i = 0;
+            const write = () => {
+                if (!typing) { targetEl.textContent = fullText; currentTyping = null; done && done(); return; }
+                targetEl.textContent = fullText.slice(0, i++);
+                if (i <= fullText.length) {
+                    typerInterval = setTimeout(write, speed);
+                } else {
+                    typing = false;
+                    const d = done; currentTyping = null; d && d();
                 }
-            }, 5000);
+            };
+            write();
         }
 
-        // Wort-Erklärung verstecken
-        function hideWordExplanation() {
-            if (currentExplanation) {
-                currentExplanation.classList.remove('show');
-                setTimeout(() => {
-                    if (currentExplanation && currentExplanation.parentNode) {
-                        currentExplanation.remove();
-                    }
-                    currentExplanation = null;
-                }, 300);
-            }
+        function appendNextLine(){
+            const t = transcripts[current];
+            if (step >= t.lines.length) return; // finished
+
+            const line = t.lines[step++];
+            const isInterviewer = line.s === 'i';
+            const bubble = document.createElement('div');
+            bubble.className = 'msg ' + (isInterviewer ? 'from-interviewer' : 'from-respondent');
+
+            const name = document.createElement('span');
+            name.className = 'name';
+            name.textContent = isInterviewer ? t.interviewer : t.respondent;
+            const text = document.createElement('span');
+            text.className = 'typing';
+
+            bubble.appendChild(name);
+            bubble.appendChild(text);
+            chatEl.appendChild(bubble);
+            chatEl.scrollTop = chatEl.scrollHeight;
+
+            typeText(text, line.t, 14, () => {
+                text.classList.remove('typing');
+                updateProgress();
+            });
         }
 
-        // Verstecke Erklärung bei Klick außerhalb
+        function updateProgress(){
+            const t = transcripts[current];
+            progressEl.textContent = `${Math.min(step, t.lines.length)} / ${t.lines.length}`;
+        }
+
+        // Click handling: advance only when clicking on the right side; click while typing skips to end
         document.addEventListener('click', (e) => {
-            if (currentExplanation && !currentExplanation.contains(e.target) && !e.target.classList.contains('difficult-word')) {
-                hideWordExplanation();
-            }
+            const rect = modalBody.getBoundingClientRect();
+            const clickInBody = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+            if (!clickInBody) return;
+            const thresholdX = rect.left + rect.width * 0.64; // right ~36%
+            if (e.clientX < thresholdX) return;
+            if (typing) { stopTyping(); } else { appendNextLine(); }
         });
 
-        // Zurück zur Hauptseite
-        window.goBackToMain = function() {
-            window.location.href = 'index.html';
-        };
-
-        // Smooth scrolling für interne Links
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Examples Seite geladen');
-            
-            // Scroll-Animation für Cards
-            const cards = document.querySelectorAll('.example-card');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            });
-            
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-                observer.observe(card);
-            });
+        // Keyboard support: ArrowRight to advance or skip typing
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') { if (typing) stopTyping(); else appendNextLine(); }
         });
+
+        // Init
+        renderSelector();
+        selectTranscript(0);
+        updateProgress();
     </script>
 </body>
 </html>
