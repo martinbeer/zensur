@@ -386,8 +386,32 @@
             'banned': 'Banned ist das englische Wort für "verboten". Es bedeutet das Gleiche wie verboten.',
             'propaganda': 'Propaganda sind Informationen, die nur eine Seite zeigen und Menschen zu einer bestimmten Meinung bringen sollen.',
             'diktatur': 'Eine Diktatur ist ein Land, wo nur eine Person oder eine kleine Gruppe alle Entscheidungen trifft und andere nicht mitbestimmen dürfen.',
-            'blasphemie': 'Blasphemie bedeutet, etwas über Religion zu sagen, was manche Menschen als respektlos empfinden.'
+            'blasphemie': 'Blasphemie bedeutet, etwas über Religion zu sagen, was manche Menschen als respektlos empfinden.',
+            'fatwa': 'Eine Fatwa ist eine religiöse Entscheidung eines islamischen Gelehrten. Manchmal wird sie missverstanden als Aufruf zur Gewalt.',
+            'zensur': 'Zensur bedeutet, dass der Staat oder andere bestimmen, was Menschen lesen, sagen oder sehen dürfen.',
+            'dystopie': 'Eine Dystopie ist eine erfundene, schlimme Zukunft, in der vieles schlecht ist.',
+            'allegorie': 'Eine Allegorie erzählt etwas mit Bildern oder Symbolen. Tiere können zum Beispiel für Menschen stehen.',
+            'autoritaer': 'Autoritär heißt streng und von oben herab. Wenige entscheiden für alle, andere dürfen kaum mitreden.',
+            'subversiv': 'Subversiv bedeutet, dass etwas bestehende Regeln oder Mächtige leise in Frage stellt.',
+            'indoktrination': 'Indoktrination heißt, dass jemand anderen eine Meinung einpflanzt, ohne Diskussion zu erlauben.',
+            'kontroverse': 'Kontrovers bedeutet, dass viele Menschen stark verschiedener Meinung darüber sind.',
+            'pädophilie': 'Pädophilie bedeutet, dass ein Erwachsener sich zu Kindern hingezogen fühlt. Das ist verboten und schadet Kindern.',
+            'theokratie': 'In einer Theokratie bestimmt Religion die Regeln und die Regierung.',
+            'zensurvorwurf': 'Wenn jemand sagt, etwas sei zensiert worden, ist das ein Zensurvorwurf.',
+            'lobbyismus': 'Lobbyismus ist, wenn Gruppen Einfluss auf Politik nehmen, damit Gesetze in ihrem Sinne gemacht werden.',
+            'autobiographisch': 'Autobiographisch bedeutet: Die Person schreibt über ihr eigenes Leben.',
+            'revolution': 'Revolution ist eine große, schnelle Veränderung, oft gegen die Regierung.',
+            'suizid': 'Suizid bedeutet, dass sich jemand selbst das Leben nimmt. Das ist sehr traurig und man sollte sich Hilfe holen.',
+            'white savior': 'White Savior ist, wenn eine Geschichte einen weißen Menschen als Retter darstellt und andere klein macht.',
+            'blm': 'BLM steht für Black Lives Matter – eine Bewegung gegen Rassismus und Polizeigewalt.',
+            'tabu': 'Ein Tabu ist etwas, worüber man nicht sprechen soll. Manchmal brechen Bücher Tabus, um nachzudenken.'
         };
+
+        // Wörter robust erkennen (inkl. Groß-/Kleinschreibung, Umlaute, Bindestriche)
+        const difficultTerms = Object.keys(wordExplanations)
+            .sort((a, b) => b.length - a.length) // längere zuerst, um Teiltreffer zu vermeiden
+            .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const difficultRegex = new RegExp(`\\b(${difficultTerms.join('|')})\\b`, 'gi');
 
         // Aktuelle offene Erklärung
         let currentExplanation = null;
@@ -625,17 +649,26 @@
             updateCounter();
             console.log('Book stack initialized with', stack.children.length, 'cards');
         };          // Buchkarte erstellen
+        function wrapDifficultWords(html) {
+            return html.replace(difficultRegex, (match) => {
+                const key = match.toLowerCase();
+                return `<span class="difficult-word" onclick="showWordExplanation(event, '${key}')">${match}</span>`;
+            });
+        }
+
         function createBookCard(book) {
             const card = document.createElement('div');
             card.className = 'book-card-stack';
+            const safeDescription = wrapDifficultWords(book.description);
+            const safeBannedIn = wrapDifficultWords(book.bannedIn);
             card.innerHTML = `
                 <div class="book-icon">${book.icon}</div>
                 <div class="book-title">${book.title}</div>
                 <div class="book-author">${book.author}</div>
-                <div class="book-description">${book.description}</div>
+                <div class="book-description">${safeDescription}</div>
                 <div class="book-banned-in">
                     <strong>VERBOTEN IN:</strong>
-                    ${book.bannedIn}
+                    ${safeBannedIn}
                 </div>
             `;
             return card;
