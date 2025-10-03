@@ -596,7 +596,24 @@
             'prophetische': 'Prophetisch bedeutet "vorhersagend". Wie wenn jemand in die Zukunft schauen kann und richtig liegt.',
             'fatwa': 'Eine Fatwa ist ein religiöses Urteil im Islam. Wie ein strenges Gebot, das befolgt werden soll.',
             'revolutionaere': 'Revolutionär bedeutet "alles verändernd". Wie eine Erfindung, die die ganze Welt anders macht.',
-            'systematisch': 'Systematisch bedeutet "geplant und geordnet". Es passiert nicht zufällig, sondern jemand macht es mit Absicht.'
+            'systematisch': 'Systematisch bedeutet "geplant und geordnet". Es passiert nicht zufällig, sondern jemand macht es mit Absicht.',
+            'zensur': 'Zensur bedeutet, dass jemand entscheidet, was andere Menschen lesen, hören oder sehen dürfen. Es ist wie wenn ein Erwachsener bestimmt, welche Filme du schauen darfst.',
+            'systematische': 'Systematisch bedeutet "geplant und geordnet". Es passiert nicht zufällig, sondern jemand macht es mit Absicht.',
+            'manipulation': 'Manipulation bedeutet, dass jemand Informationen verändert, um Menschen zu beeinflussen. Wie wenn jemand eine Geschichte anders erzählt.',
+            'institutionen': 'Institutionen sind große Organisationen wie Regierungen, Schulen oder Firmen, die wichtige Entscheidungen treffen.',
+            'praeventiv': 'Präventiv bedeutet "vorher". Es passiert, bevor etwas veröffentlicht wird, wie wenn ein Lehrer einen Aufsatz vor der Abgabe liest.',
+            'repressiv': 'Repressiv bedeutet "nachher". Es passiert, nachdem etwas schon veröffentlicht wurde, wie wenn ein Buch aus der Bibliothek entfernt wird.',
+            'sanktioniert': 'Sanktioniert bedeutet "bestraft". Wenn jemand etwas Verbotenes gemacht hat, bekommt er eine Strafe dafür.',
+            'akteure': 'Akteure sind Menschen oder Organisationen, die etwas tun oder entscheiden. Wie Schauspieler auf einer Bühne, aber im echten Leben.',
+            'plattformbetreiber': 'Das sind Firmen, die Internetseiten wie Facebook, YouTube oder TikTok besitzen und kontrollieren.',
+            'blasphemisch': 'Blasphemisch bedeutet "gotteslästerlich" - etwas, was gegen den Glauben einer Religion verstößt und als respektlos gilt.',
+            'algorithmus': 'Ein Algorithmus ist wie ein Kochrezept für Computer. Er entscheidet, welche Videos du auf YouTube siehst oder welche Posts bei Instagram ganz oben stehen.',
+            'shadowbanning': 'Shadow-Banning bedeutet, dass deine Posts heimlich versteckt werden. Du merkst es nicht, aber andere sehen deine Beiträge nicht mehr.',
+            'dystopisch': 'Dystopisch bedeutet "schreckliche Zukunftsvision". Ein dystopisches Buch zeigt, wie schlimm die Welt werden könnte.',
+            'theokratisch': 'Theokratisch bedeutet, dass religiöse Führer das Land regieren, nicht gewählte Politiker.',
+            'überwachung': 'Überwachung bedeutet, dass jemand heimlich beobachtet, was du machst, sagst oder denkst.',
+            'gedankenkontrolle': 'Gedankenkontrolle bedeutet, dass jemand versucht zu bestimmen, was Menschen denken sollen.',
+            'demokratisch': 'Demokratisch bedeutet, dass alle Menschen mitbestimmen dürfen und ihre Stimme zählt.'
         };
 
         // Auto-wrap schwierige Wörter, falls sie noch nicht markiert sind
@@ -607,8 +624,30 @@
 
         function wrapDifficultWords(html) {
             return html.replace(difficultRegex, (match) => {
-                // nicht doppelt wrappen, wenn bereits Span vorhanden
+                // Prüfe ob das Wort bereits in einem span steht
+                const beforeMatch = html.substring(0, html.indexOf(match));
+                if (beforeMatch.includes('<span class="difficult-word"') && 
+                    !beforeMatch.includes('</span>')) {
+                    return match; // bereits gewickelt
+                }
                 return `<span class="difficult-word" onclick="showWordExplanation(event, '${match.toLowerCase()}')">${match}</span>`;
+            });
+        }
+
+        // Timeline-Texte automatisch mit schwierigen Wörtern wrappen
+        function initializeTooltips() {
+            // Alle Timeline-Inhalte finden und Wörter wrappen
+            const timelineCards = document.querySelectorAll('.timeline-card');
+            timelineCards.forEach(card => {
+                const content = card.innerHTML;
+                card.innerHTML = wrapDifficultWords(content);
+            });
+
+            // Auch Detail-Inhalte wrappen wenn sie angezeigt werden
+            const detailElements = document.querySelectorAll('.timeline-detail p, .timeline-detail .impact');
+            detailElements.forEach(element => {
+                const content = element.innerHTML;
+                element.innerHTML = wrapDifficultWords(content);
             });
         }
 
@@ -761,6 +800,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Setup scroll animations
             setupScrollAnimations();
+            
+            // Initialize tooltips für schwierige Wörter
+            initializeTooltips();
             
             // ESC key to close detail
             document.addEventListener('keydown', (e) => {
