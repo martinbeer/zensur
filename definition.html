@@ -12,6 +12,12 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        *::-webkit-scrollbar {
+            display: none;
         }
 
         body {
@@ -105,6 +111,12 @@
             padding: 40px 20px;
             height: calc(95vh - 80px);
             overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .modal-body::-webkit-scrollbar {
+            display: none;
         }
 
         /* Content Styles */
@@ -601,6 +613,23 @@
                 hideWordExplanation();
             }
         });
+
+        // 3-minute inactivity timeout
+        let inactivityTimer = null;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 180000); // 3 minutes
+        }
+
+        // Track user activity
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, { passive: true });
+        });
+
+        // Start timer
+        resetInactivityTimer();
 
         // Zurück zur Hauptseite
         function goBackToMain() {
